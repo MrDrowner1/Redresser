@@ -58,11 +58,7 @@ target('Redresser')
 
     add_includedirs(
         'src',
-        '$(projectdir)',
-        '$(projectdir)/ClibUtil',
-        '$(projectdir)/ClibUtil/detail',
-        '$(projectdir)/xbyak',
-        '$(projectdir)/simpleini'
+        '$(projectdir)'
     )
 
     set_pcxxheader('src/pch.h')
