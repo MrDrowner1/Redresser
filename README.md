@@ -1,0 +1,1 @@
+SKSE plugin that makes NPCs put on clothes they already have in their inventory.
