@@ -11,7 +11,7 @@ void AutoEquipHighActors()
 
     for (auto& handle : processLists->highActorHandles) {
         auto actor = handle.get().get();
-        if (!actor || actor->IsPlayerRef() || actor->IsDead())
+        if (!actor || actor->IsPlayerRef() || actor->IsDead() || actor->IsPlayerTeammate())
             continue;
 
         auto inv = actor->GetInventory();
