@@ -1,5 +1,7 @@
 #include <SKSE/SKSE.h>
 #include <RE/A/ActorEquipManager.h>
+#include <format>
+#include <string>
 
 void AutoEquipHighActors()
 {
@@ -22,6 +24,25 @@ void AutoEquipHighActors()
             if (!armor)
                 continue;
 
+            auto actorSlots = static_cast<uint32_t>(armor->GetSlotMask());
+            bool slotOccupied = false;
+
+            for (uint32_t i = 0; i < 32; i++) {
+                uint32_t slot = 1u << i;
+
+                if (actorSlots & slot) {
+                    if (actor->GetWornArmor(
+                            static_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(slot))) {
+                        slotOccupied = true;
+                        // RE::ConsoleLog::GetSingleton()->Print(std::format("{}: trying to equip {}, already occupied", actor->GetName(), item->GetName()).c_str());
+                        break;
+                    }
+                }
+            }
+
+            if(slotOccupied)
+                continue;
+
             auto equipManager = RE::ActorEquipManager::GetSingleton();
             if (equipManager)
                 equipManager->EquipObject(
@@ -31,8 +52,8 @@ void AutoEquipHighActors()
                     1,
                     nullptr, // pick equip slot automatically
                     false,
-                    false, // no force equip 
-                    false, // no playing sounds 
+                    false,
+                    false,
                     false
                 );
         }
