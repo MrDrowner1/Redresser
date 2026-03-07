@@ -7,8 +7,6 @@ void AutoEquipHighActors()
     if (!processLists)
         return;
 
-    // RE::ConsoleLog::GetSingleton()->Print("Redresser started.");
-
     for (auto& handle : processLists->highActorHandles) {
         auto actor = handle.get().get();
         if (!actor || actor->IsPlayerRef() || actor->IsDead() || actor->IsPlayerTeammate())
@@ -31,7 +29,7 @@ void AutoEquipHighActors()
                     armor,
                     nullptr,
                     1,
-                    nullptr, // equip slot (auto) 
+                    nullptr, // pick equip slot automatically
                     false,
                     false, // no force equip 
                     false, // no playing sounds 
@@ -41,21 +39,19 @@ void AutoEquipHighActors()
     }
 }
 
-class LoadingMenuSink :
+class LoadingMenuSink:
     public RE::BSTEventSink<RE::MenuOpenCloseEvent>
 {
 public:
     RE::BSEventNotifyControl ProcessEvent(
-        const RE::MenuOpenCloseEvent* event,
+        const RE::MenuOpenCloseEvent* MenuEvent,
         RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override
     {
-        if (!event)
+        if (!MenuEvent)
             return RE::BSEventNotifyControl::kContinue;
 
-        if (event->menuName == RE::LoadingMenu::MENU_NAME && !event->opening) {
-            // RE::ConsoleLog::GetSingleton()->Print("Redresser: Loading menu closed.");
+        if (MenuEvent->menuName == RE::LoadingMenu::MENU_NAME && !MenuEvent->opening)
             AutoEquipHighActors();
-        }
 
         return RE::BSEventNotifyControl::kContinue;
     }
@@ -65,16 +61,10 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 {
     static LoadingMenuSink g_loadingMenuSink;
 
-	switch (message->type) {
-    case SKSE::MessagingInterface::kDataLoaded:
-        {
+	if (message->type == SKSE::MessagingInterface::kDataLoaded){
         auto ui = RE::UI::GetSingleton();
         if (ui)
             ui->AddEventSink<RE::MenuOpenCloseEvent>(&g_loadingMenuSink);
-        }
-        break;
-    default:
-        break;
     }
 }
                 
@@ -84,7 +74,6 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
 
     const auto messaging = SKSE::GetMessagingInterface();
     if (!messaging->RegisterListener("SKSE", SKSEMessageHandler)) {
-        logger::critical("Failed to register Listener");
         return false;
     }
 
