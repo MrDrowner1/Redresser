@@ -14,6 +14,8 @@ void AutoEquipHighActors()
         if (!actor || actor->IsPlayerRef() || actor->IsDead() || actor->IsPlayerTeammate())
             continue;
 
+        RE::ConsoleLog::GetSingleton()->Print(std::format("Redresser: processing {}", actor->GetName()).c_str());
+
         auto inv = actor->GetInventory();
 
         for (auto& [item, data] : inv) {
@@ -31,10 +33,9 @@ void AutoEquipHighActors()
                 uint32_t slot = 1u << i;
 
                 if (actorSlots & slot) {
-                    if (actor->GetWornArmor(
-                            static_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(slot))) {
+                    if (actor->GetWornArmor(static_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(slot))) {
                         slotOccupied = true;
-                        // RE::ConsoleLog::GetSingleton()->Print(std::format("{}: trying to equip {}, already occupied", actor->GetName(), item->GetName()).c_str());
+                        // RE::ConsoleLog::GetSingleton()->Print(std::format("{}: trying to equip {}, slot is already occupied", actor->GetName(), item->GetName()).c_str());
                         break;
                     }
                 }
@@ -71,8 +72,14 @@ public:
         if (!MenuEvent)
             return RE::BSEventNotifyControl::kContinue;
 
-        if (MenuEvent->menuName == RE::LoadingMenu::MENU_NAME && !MenuEvent->opening)
-            AutoEquipHighActors();
+        if (MenuEvent->menuName == RE::LoadingMenu::MENU_NAME && !MenuEvent->opening){
+            SKSE::GetTaskInterface()->AddTask([]() {
+                SKSE::GetTaskInterface()->AddTask([]() {
+                    RE::ConsoleLog::GetSingleton()->Print("Redresser: started after skipping 2 frames");
+                    AutoEquipHighActors();
+                });
+            });
+        }
 
         return RE::BSEventNotifyControl::kContinue;
     }
