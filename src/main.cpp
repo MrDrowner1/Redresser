@@ -7,7 +7,7 @@ void AutoEquipHighActors()
     if (!processLists)
         return;
 
-    //RE::ConsoleLog::GetSingleton()->Print("Redresser started.");
+    // RE::ConsoleLog::GetSingleton()->Print("Redresser started.");
 
     for (auto& handle : processLists->highActorHandles) {
         auto actor = handle.get().get();
@@ -53,7 +53,7 @@ public:
             return RE::BSEventNotifyControl::kContinue;
 
         if (event->menuName == RE::LoadingMenu::MENU_NAME && !event->opening) {
-            //RE::ConsoleLog::GetSingleton()->Print("Redresser: Loading menu closed.");
+            // RE::ConsoleLog::GetSingleton()->Print("Redresser: Loading menu closed.");
             AutoEquipHighActors();
         }
 
@@ -66,10 +66,6 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
     static LoadingMenuSink g_loadingMenuSink;
 
 	switch (message->type) {
-    case SKSE::MessagingInterface::kPostLoadGame:
-        //RE::ConsoleLog::GetSingleton()->Print("Redresser: Save load.");
-        AutoEquipHighActors();
-        break;
     case SKSE::MessagingInterface::kDataLoaded:
         {
         auto ui = RE::UI::GetSingleton();
