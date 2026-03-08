@@ -18,5 +18,7 @@ void Settings::Initialize()
     auto selectMode = ini.GetLongValue("General", "SelectedActors", 0);
     selectedActors = static_cast<Settings::NPCPool>(selectMode);
 
+    equipMainSlotsOnly = ini.GetBoolValue("General", "EquipMainSlotsOnly", true);
+    
     skipPlayerHome = ini.GetBoolValue("General", "SkipPlayerHome", true);
 }

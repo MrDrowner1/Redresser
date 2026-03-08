@@ -14,6 +14,8 @@ struct Settings
 
     bool skipPlayerHome = false;
 
+    bool equipMainSlotsOnly = true;
+
     void Initialize();
 };
 

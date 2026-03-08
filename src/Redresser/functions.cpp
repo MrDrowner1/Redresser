@@ -41,25 +41,26 @@ void AutoEquipHighActors()
         for (auto& [item, data] : inv) {
             if (!item || !item->IsArmor())
                 continue;
-
-            
+         
             auto armor = item->As<RE::TESObjectARMO>();
             if (!armor)
                 continue;
 
-            // Prevents equipping shields
+            // Prevents from equipping shields
             if (armor->IsShield())
                 continue;
 
             auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
 
-            // Prevents equipping stashed jewelry
-            uint32_t kAmuletSlot = 1u << 35;
-            uint32_t kRingSlot   = 1u << 36;
+            constexpr uint32_t kBody = static_cast<uint32_t>(RE::BGSBipedObjectForm::BipedObjectSlot::kBody);
+            constexpr uint32_t kHead = static_cast<uint32_t>(RE::BGSBipedObjectForm::BipedObjectSlot::kHead);
+            constexpr uint32_t kHands = static_cast<uint32_t>(RE::BGSBipedObjectForm::BipedObjectSlot::kHands);
+            constexpr uint32_t kFeet = static_cast<uint32_t>(RE::BGSBipedObjectForm::BipedObjectSlot::kFeet);
 
-            if (armorSlots & (kAmuletSlot | kRingSlot)) {
+            // Prevents from equipping misc items (jewelry etc.)
+            constexpr uint32_t mainSlots = kBody | kHead | kHands | kFeet;
+            if (g_settings.equipMainSlotsOnly && !(armorSlots & mainSlots))
                 continue;
-            }
 
             bool slotOccupied = false;
 
