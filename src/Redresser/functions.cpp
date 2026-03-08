@@ -8,7 +8,7 @@ void AutoEquipHighActors()
     if (!processLists)
         return;
 
-    // Skipping in player home
+    // Skipping player homes
     if (g_settings.skipPlayerHome && isPlayerHome()){
         debug_output("Redresser: Player home detected, skipping");
         return;
