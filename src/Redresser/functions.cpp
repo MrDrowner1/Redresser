@@ -118,14 +118,12 @@ bool isPlayerHome(){
     // checking for cell ownership
     auto cell = player->GetParentCell();
     
-    if (!cell || !cell->IsInteriorCell()) {
+    if (!cell || !cell->IsInteriorCell())
         return false;
-    }
 
     auto actorOwner = cell->GetActorOwner();
-    if (actorOwner && actorOwner == player->GetActorBase()) {
+    if (actorOwner && actorOwner == player->GetActorBase())
         return true;
-    }
 
     return false;
 }
