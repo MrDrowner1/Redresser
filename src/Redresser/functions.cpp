@@ -10,14 +10,20 @@ void AutoEquipHighActors()
 
     for (auto& handle : processLists->highActorHandles) {
         auto actor = handle.get().get();
+
+        // Skipping player, active followers and dead people
         if (!actor || actor->IsPlayerRef() || actor->IsDead() || actor->IsPlayerTeammate())
             continue;
 
-        if (r_settings.SelectedActors == Settings::NPCPool::NakedOnly && !isNaked(actor)){
+        // Skipping animals
+        if (actor->HasKeyword(g_keywordAnimal))
+            continue;
+
+        if (g_settings.SelectedActors == Settings::NPCPool::NakedOnly && !isNaked(actor)){
             debug_output("Redresser: {} is not naked, skipping", actor->GetName());
             continue;
         }
-        else if (r_settings.SelectedActors == Settings::NPCPool::NoMainArmorOnly && !isNoMainArmor(actor)){
+        else if (g_settings.SelectedActors == Settings::NPCPool::NoMainArmorOnly && !isNoMainArmor(actor)){
             debug_output("Redresser: {} has main armor slot occupied, skipping", actor->GetName());
             continue;
         }
@@ -88,4 +94,8 @@ bool isNoMainArmor(RE::Actor* actor){
     bool noMainArmor = !actor->GetWornArmor(Slot::kBody);
 
     return noMainArmor;
+}
+
+void InitializeKeywords() {
+    g_keywordAnimal = RE::TESForm::LookupByEditorID<RE::BGSKeyword>("ActorTypeAnimal");
 }

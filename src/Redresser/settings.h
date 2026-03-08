@@ -15,4 +15,4 @@ struct Settings
     void Initialize();
 };
 
-inline Settings r_settings;
+inline Settings g_settings;

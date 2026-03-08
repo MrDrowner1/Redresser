@@ -35,7 +35,8 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
     static LoadingMenuSink g_loadingMenuSink;
 
 	if (message->type == SKSE::MessagingInterface::kDataLoaded){
-        r_settings.Initialize();
+        g_settings.Initialize();
+        InitializeKeywords();
         auto ui = RE::UI::GetSingleton();
         if (ui)
             ui->AddEventSink<RE::MenuOpenCloseEvent>(&g_loadingMenuSink);
