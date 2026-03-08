@@ -8,7 +8,7 @@ void AutoEquipHighActors();
 
 bool isNaked(RE::Actor* actor);
 
-bool isNoMainArmor(RE::Actor* actor);
+bool isMissingMainArmor(RE::Actor* actor);
 
 bool isPlayerHome();
 

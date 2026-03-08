@@ -29,7 +29,7 @@ void AutoEquipHighActors()
             debug_output("Redresser: {} is not naked, skipping", actor->GetName());
             continue;
         }
-        else if (g_settings.selectedActors == Settings::NPCPool::NoMainArmorOnly && !isNoMainArmor(actor)){
+        else if (g_settings.selectedActors == Settings::NPCPool::NoMainArmorOnly && !isMissingMainArmor(actor)){
             debug_output("Redresser: {} has main armor slot occupied, skipping", actor->GetName());
             continue;
         }
@@ -95,7 +95,7 @@ bool isNaked(RE::Actor* actor){
     return isNaked;
 }
 
-bool isNoMainArmor(RE::Actor* actor){
+bool isMissingMainArmor(RE::Actor* actor){
     using Slot = RE::BGSBipedObjectForm::BipedObjectSlot;
     bool noMainArmor = !actor->GetWornArmor(Slot::kBody);
 
