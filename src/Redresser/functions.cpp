@@ -21,14 +21,8 @@ void AutoEquipHighActors()
             debug_output("Redresser: {} has main armor slot occupied, skipping", actor->GetName());
             continue;
         }
-        else if (r_settings.SelectedActors == Settings::NPCPool::Everyone){
-            debug_output("Redresser: processing {}", actor->GetName());
-            // No skipping, the actor is eligible
-        }
-        else{
-            debug_output("Incorrect settings");
-            return;
-        }
+
+        debug_output("Redresser: processing {}", actor->GetName());
         
         auto inv = actor->GetInventory();
 
