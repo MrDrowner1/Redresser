@@ -30,12 +30,15 @@ option('skyrim_vr')
     set_description('Build for Skyrim VR only')
 option_end()
 
+add_requires("simpleini")
+
 if has_config('skyrim_vr') and (has_config('skyrim_se') or has_config('skyrim_ae')) then
     raise('Cannot combine Skyrim VR with SE/AE builds. Enable only one configuration.')
 end
 
 target('Redresser')
     add_deps('commonlibsse-ng')
+    add_packages("simpleini")
 
     local runtime = 'se_ae'
     if has_config('skyrim_vr') then

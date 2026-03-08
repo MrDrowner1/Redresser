@@ -2,64 +2,8 @@
 #include <RE/A/ActorEquipManager.h>
 #include <format>
 #include <string>
-
-void AutoEquipHighActors()
-{
-    auto processLists = RE::ProcessLists::GetSingleton();
-    if (!processLists)
-        return;
-
-    for (auto& handle : processLists->highActorHandles) {
-        auto actor = handle.get().get();
-        if (!actor || actor->IsPlayerRef() || actor->IsDead() || actor->IsPlayerTeammate())
-            continue;
-
-        RE::ConsoleLog::GetSingleton()->Print(std::format("Redresser: processing {}", actor->GetName()).c_str());
-
-        auto inv = actor->GetInventory();
-
-        for (auto& [item, data] : inv) {
-            if (!item || !item->IsArmor())
-                continue;
-
-            auto armor = item->As<RE::TESObjectARMO>();
-            if (!armor)
-                continue;
-
-            auto actorSlots = static_cast<uint32_t>(armor->GetSlotMask());
-            bool slotOccupied = false;
-
-            for (uint32_t i = 0; i < 32; i++) {
-                uint32_t slot = 1u << i;
-
-                if (actorSlots & slot) {
-                    if (actor->GetWornArmor(static_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(slot))) {
-                        slotOccupied = true;
-                        // RE::ConsoleLog::GetSingleton()->Print(std::format("{}: trying to equip {}, slot is already occupied", actor->GetName(), item->GetName()).c_str());
-                        break;
-                    }
-                }
-            }
-
-            if(slotOccupied)
-                continue;
-
-            auto equipManager = RE::ActorEquipManager::GetSingleton();
-            if (equipManager)
-                equipManager->EquipObject(
-                    actor,
-                    armor,
-                    nullptr,
-                    1,
-                    nullptr, // pick equip slot automatically
-                    false,
-                    false,
-                    false,
-                    false
-                );
-        }
-    }
-}
+#include "Redresser/functions.h"
+#include "Redresser/debug_output.h"
 
 class LoadingMenuSink:
     public RE::BSTEventSink<RE::MenuOpenCloseEvent>
@@ -73,9 +17,10 @@ public:
             return RE::BSEventNotifyControl::kContinue;
 
         if (MenuEvent->menuName == RE::LoadingMenu::MENU_NAME && !MenuEvent->opening){
+            // skipping 2 frames, just in case
             SKSE::GetTaskInterface()->AddTask([]() {
                 SKSE::GetTaskInterface()->AddTask([]() {
-                    RE::ConsoleLog::GetSingleton()->Print("Redresser: started after skipping 2 frames");
+                    debug_output("Redresser: starting");
                     AutoEquipHighActors();
                 });
             });
