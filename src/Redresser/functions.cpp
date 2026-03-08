@@ -4,15 +4,15 @@
 
 void AutoEquipHighActors()
 {
-    auto processLists = RE::ProcessLists::GetSingleton();
-    if (!processLists)
-        return;
-
     // Skipping player homes
     if (g_settings.skipPlayerHome && isPlayerHome()){
         debug_output("Redresser: Player home detected, skipping");
         return;
     }
+
+    auto processLists = RE::ProcessLists::GetSingleton();
+    if (!processLists)
+        return;
 
     for (auto& handle : processLists->highActorHandles) {
         auto actor = handle.get().get();
