@@ -8,6 +8,12 @@ void AutoEquipHighActors()
     if (!processLists)
         return;
 
+    // Skipping in player home
+    if (g_settings.skipPlayerHome && isPlayerHome()){
+        debug_output("Redresser: Player home detected, skipping");
+        return;
+    }
+
     for (auto& handle : processLists->highActorHandles) {
         auto actor = handle.get().get();
 
@@ -19,11 +25,11 @@ void AutoEquipHighActors()
         if (actor->HasKeyword(g_keywordAnimal))
             continue;
 
-        if (g_settings.SelectedActors == Settings::NPCPool::NakedOnly && !isNaked(actor)){
+        if (g_settings.selectedActors == Settings::NPCPool::NakedOnly && !isNaked(actor)){
             debug_output("Redresser: {} is not naked, skipping", actor->GetName());
             continue;
         }
-        else if (g_settings.SelectedActors == Settings::NPCPool::NoMainArmorOnly && !isNoMainArmor(actor)){
+        else if (g_settings.selectedActors == Settings::NPCPool::NoMainArmorOnly && !isNoMainArmor(actor)){
             debug_output("Redresser: {} has main armor slot occupied, skipping", actor->GetName());
             continue;
         }
@@ -96,6 +102,20 @@ bool isNoMainArmor(RE::Actor* actor){
     return noMainArmor;
 }
 
+bool isPlayerHome(){
+    auto player = RE::PlayerCharacter::GetSingleton();
+    if (!player)
+        return false;
+
+    auto curLocation = player->GetCurrentLocation();
+    if (!curLocation)
+        return false;
+    
+    if (curLocation->HasKeyword(g_locTypePlayerHouse))
+        return true;
+}
+
 void InitializeKeywords() {
     g_keywordAnimal = RE::TESForm::LookupByEditorID<RE::BGSKeyword>("ActorTypeAnimal");
+    g_locTypePlayerHouse = RE::TESForm::LookupByEditorID<RE::BGSKeyword>("LocTypePlayerHouse");
 }

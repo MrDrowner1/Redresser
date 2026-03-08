@@ -10,7 +10,9 @@ struct Settings
         NoMainArmorOnly = 2
     };
 
-    NPCPool SelectedActors = NPCPool::Everyone;
+    NPCPool selectedActors = NPCPool::Everyone;
+
+    bool skipPlayerHome = false;
 
     void Initialize();
 };

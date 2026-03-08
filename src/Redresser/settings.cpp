@@ -12,8 +12,11 @@ void Settings::Initialize()
         return;
     }
 
+    // Initializing the settings
     debug = ini.GetBoolValue("General", "Debug", false);
 
     auto selectMode = ini.GetLongValue("General", "SelectedActors", 0);
-    SelectedActors = static_cast<Settings::NPCPool>(selectMode);
+    selectedActors = static_cast<Settings::NPCPool>(selectMode);
+
+    skipPlayerHome = ini.GetBoolValue("General", "SkipPlayerHome", true);
 }
