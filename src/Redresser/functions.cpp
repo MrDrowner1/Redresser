@@ -42,17 +42,31 @@ void AutoEquipHighActors()
             if (!item || !item->IsArmor())
                 continue;
 
+            
             auto armor = item->As<RE::TESObjectARMO>();
             if (!armor)
                 continue;
 
-            auto actorSlots = static_cast<uint32_t>(armor->GetSlotMask());
+            // Prevents equipping shields
+            if (armor->IsShield())
+                continue;
+
+            auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
+
+            // Prevents equipping stashed jewelry
+            uint32_t kAmuletSlot = 1u << 35;
+            uint32_t kRingSlot   = 1u << 36;
+
+            if (armorSlots & (kAmuletSlot | kRingSlot)) {
+                continue;
+            }
+
             bool slotOccupied = false;
 
             for (uint32_t i = 0; i < 32; i++) {
                 uint32_t slot = 1u << i;
 
-                if (actorSlots & slot) {
+                if (armorSlots & slot) {
                     if (actor->GetWornArmor(static_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(slot))) {
                         slotOccupied = true;
                         // debug_output("{}: trying to equip {}, slot is already occupied", actor->GetName(), item->GetName());
