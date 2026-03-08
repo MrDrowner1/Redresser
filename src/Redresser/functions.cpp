@@ -30,7 +30,7 @@ void AutoEquipHighActors()
             continue;
         }
         else if (g_settings.selectedActors == Settings::NPCPool::NoMainArmorOnly && !isMissingMainArmor(actor)){
-            debug_output("Redresser: {} has main armor slot occupied, skipping", actor->GetName());
+            debug_output("Redresser: {} has the main armor slot occupied, skipping", actor->GetName());
             continue;
         }
 
@@ -78,7 +78,7 @@ void AutoEquipHighActors()
                     false
                 );
 
-            debug_output("Redresser. {}: equipped {}", actor->GetName(), armor->GetName());
+            debug_output("Redresser: {}: equipped {}", actor->GetName(), armor->GetName());
         }
     }
 }
