@@ -3,7 +3,7 @@ includes('lib/commonlibsse-ng')
 
 set_project('Redresser')
 set_version('0.1.3')
-set_license('GPL-3.0')
+set_license('MIT')
 
 set_languages('c++23')
 set_warnings('allextra')
