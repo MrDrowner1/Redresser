@@ -107,12 +107,27 @@ bool isPlayerHome(){
     if (!player)
         return false;
 
+    // checking for player house keyword
     auto curLocation = player->GetCurrentLocation();
     if (!curLocation)
         return false;
     
     if (curLocation->HasKeyword(g_locTypePlayerHouse))
         return true;
+
+    // checking for cell ownership
+    auto cell = player->GetParentCell();
+    
+    if (!cell || !cell->IsInteriorCell()) {
+        return false;
+    }
+
+    auto actorOwner = cell->GetActorOwner();
+    if (actorOwner && actorOwner == player->GetActorBase()) {
+        return true;
+    }
+
+    return false;
 }
 
 void InitializeKeywords() {
