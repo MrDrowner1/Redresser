@@ -34,7 +34,7 @@ void AutoEquipHighActors()
             continue;
         }
 
-        debug_output("Redresser: processing {}", actor->GetName());
+        debug_output("Redresser: scanning {}", actor->GetName());
         
         auto inv = actor->GetInventory();
 
@@ -46,7 +46,7 @@ void AutoEquipHighActors()
             if (!armor)
                 continue;
 
-            // Prevents from equipping shields
+            // Prevents equipping shields
             if (armor->IsShield())
                 continue;
 
@@ -57,7 +57,7 @@ void AutoEquipHighActors()
             constexpr uint32_t kHands = static_cast<uint32_t>(RE::BGSBipedObjectForm::BipedObjectSlot::kHands);
             constexpr uint32_t kFeet = static_cast<uint32_t>(RE::BGSBipedObjectForm::BipedObjectSlot::kFeet);
 
-            // Prevents from equipping misc items (jewelry etc.)
+            // Prevents equipping misc items (jewelry etc.)
             constexpr uint32_t mainSlots = kBody | kHead | kHands | kFeet;
             if (g_settings.equipMainSlotsOnly && !(armorSlots & mainSlots))
                 continue;
