@@ -30,7 +30,11 @@ void ProcessActors(){
 
 void AutoEquipActor(RE::Actor* actor){
     // Skipping player, active followers, animals and dead people
-    if (!actor || !actor->Get3D() || actor->IsPlayerRef() || actor->IsDead() || actor->IsPlayerTeammate() || actor->HasKeyword(g_keywordAnimal))
+    if (!actor || !actor->Get3D() || actor->IsPlayerRef() || actor->IsPlayerTeammate() || actor->HasKeyword(g_keywordAnimal))
+        return;
+
+    // Checking for a dead actor
+    if (!g_settings.dressDeadActors && actor->IsDead())
         return;
 
     if (g_settings.selectedActors == Settings::NPCPool::NakedOnly && !isNaked(actor)){

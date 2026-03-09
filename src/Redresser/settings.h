@@ -12,9 +12,11 @@ struct Settings
 
     NPCPool selectedActors = NPCPool::Everyone;
 
-    bool skipPlayerHome = false;
+    bool dressDeadActors = true;
 
     bool equipMainSlotsOnly = true;
+    
+    bool skipPlayerHome = true;
 
     void Initialize();
 };
