@@ -4,7 +4,9 @@
 inline RE::BGSKeyword* g_keywordAnimal = nullptr;
 inline RE::BGSKeyword* g_locTypePlayerHouse = nullptr;
 
-void AutoEquipHighActors();
+void ProcessActors();
+
+void AutoEquipActor(RE::Actor* actor);
 
 bool isNaked(RE::Actor* actor);
 

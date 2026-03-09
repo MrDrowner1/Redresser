@@ -17,12 +17,18 @@ public:
             return RE::BSEventNotifyControl::kContinue;
 
         if (MenuEvent->menuName == RE::LoadingMenu::MENU_NAME && !MenuEvent->opening){
-            // skipping 2 frames, just in case
+            // skipping 5 frames, just in case
             SKSE::GetTaskInterface()->AddTask([]() {
-                SKSE::GetTaskInterface()->AddTask([]() {
-                    debug_output("Redresser: starting");
-                    AutoEquipHighActors();
-                });
+            SKSE::GetTaskInterface()->AddTask([]() {
+            SKSE::GetTaskInterface()->AddTask([]() {
+            SKSE::GetTaskInterface()->AddTask([]() {
+            SKSE::GetTaskInterface()->AddTask([]() {
+                debug_output("Redresser: starting");
+                ProcessActors();
+            });
+            });
+            });
+            });
             });
         }
 
