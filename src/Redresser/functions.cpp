@@ -26,11 +26,20 @@ void ProcessActors(){
         if(actor)
             AutoEquipActor(actor);
     }
+
+    /*
+    debug_output("Redresser: processing partially simulated actors (middleLowActorHandles). Found {} actors.", processLists->middleLowActorHandles.size());
+    for (auto& handle : processLists->middleLowActorHandles) {
+        auto actor = handle.get().get();
+        if(actor)
+            AutoEquipActor(actor);
+    }
+    */
 }
 
 void AutoEquipActor(RE::Actor* actor){
     // Skipping player, active followers, animals and dead people
-    if (!actor || !actor->Get3D() || actor->IsPlayerRef() || actor->IsPlayerTeammate() || actor->HasKeyword(g_keywordAnimal))
+    if (!actor || actor->IsPlayerRef() || actor->IsPlayerTeammate() || actor->HasKeyword(g_keywordAnimal))
         return;
 
     // Checking for a dead actor
