@@ -5,41 +5,66 @@
 void ProcessActors(){
     // Skipping player homes
     if (g_settings.skipPlayerHome && isPlayerHome()){
-        debug_output("Redresser: Player home detected, skipping");
+        debug_output("Redresser: <Player home detected, skipping>");
         return;
+    }
+
+    auto player = RE::PlayerCharacter::GetSingleton();
+    auto cell = player ? player->GetParentCell() : nullptr;
+    if (!cell)
+        return;
+
+    if (cell->IsInteriorCell()) {
+        debug_output("Redresser: <scanning an interior cell>");
+        for (auto& refPtr : cell->GetRuntimeData().references) {
+            auto actor = refPtr.get() ? refPtr.get()->As<RE::Actor>() : nullptr;
+            if (actor)
+                AutoEquipActor(actor);
+        }
+    } else {
+        debug_output("Redresser: <scanning exterior cells>");
+        auto tes = RE::TES::GetSingleton();
+        auto grid = tes ? tes->gridCells : nullptr;
+        if (!grid)
+            return;
+
+        for (std::uint32_t x = 0; x < grid->length; ++x) {
+            for (std::uint32_t y = 0; y < grid->length; ++y) {
+
+                auto cell = grid->GetCell(x, y);
+                if (!cell)
+                    continue;
+
+                for (auto& refPtr : cell->GetRuntimeData().references) {
+                    auto ref = refPtr.get();
+                    if (!ref)
+                        continue;
+
+                    auto actor = ref->As<RE::Actor>();
+                    if (!actor)
+                        continue;
+
+                    AutoEquipActor(actor);
+                }
+            }
+        }
     }
 
     auto processLists = RE::ProcessLists::GetSingleton();
     if (!processLists)
         return;
 
-    debug_output("Redresser: processing fully loaded actors (highActorHandles). Found {} actors.", processLists->highActorHandles.size());
-    for (auto& handle : processLists->highActorHandles) {
-        auto actor = handle.get().get();
-        if(actor)
-            AutoEquipActor(actor);
-    }
-
-    debug_output("Redresser: processing partially simulated actors (middleHighActorHandles). Found {} actors.", processLists->middleHighActorHandles.size());
+    debug_output("Redresser: <processing actors from the last visited cell>", processLists->middleHighActorHandles.size());
     for (auto& handle : processLists->middleHighActorHandles) {
         auto actor = handle.get().get();
         if(actor)
             AutoEquipActor(actor);
     }
-
-    /*
-    debug_output("Redresser: processing partially simulated actors (middleLowActorHandles). Found {} actors.", processLists->middleLowActorHandles.size());
-    for (auto& handle : processLists->middleLowActorHandles) {
-        auto actor = handle.get().get();
-        if(actor)
-            AutoEquipActor(actor);
-    }
-    */
 }
 
 void AutoEquipActor(RE::Actor* actor){
-    // Skipping player, active followers, animals and dead people
-    if (!actor || actor->IsPlayerRef() || actor->IsPlayerTeammate() || actor->HasKeyword(g_keywordAnimal))
+    // Skipping player, active followers, animals
+    if (!actor || actor->IsPlayerRef() || !actor->Get3D() || actor->IsPlayerTeammate() || actor->HasKeyword(g_keywordAnimal))
         return;
 
     // Checking for a dead actor
@@ -58,6 +83,9 @@ void AutoEquipActor(RE::Actor* actor){
     debug_output("Redresser: scanning {}", actor->GetName());
     
     auto inv = actor->GetInventory();
+
+    // Collecting actor's armor
+    std::vector<RE::TESObjectARMO*> armorList;
 
     for (auto& [item, data] : inv) {
         if (!item || !item->IsArmor())
@@ -83,7 +111,25 @@ void AutoEquipActor(RE::Actor* actor){
         if (g_settings.equipMainSlotsOnly && !(armorSlots & mainSlots))
             continue;
 
+        armorList.push_back(armor);
+    }
+
+    // Sorting armor by rating
+    std::sort(
+        armorList.begin(),
+        armorList.end(),
+        [](RE::TESObjectARMO* a, RE::TESObjectARMO* b)
+        {
+            return a->GetArmorRating() > b->GetArmorRating();
+        }
+    );
+
+    // Equipping armor
+    for (auto* armor : armorList) {
+
         bool slotOccupied = false;
+
+        auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
 
         for (uint32_t i = 0; i < 32; i++) {
             uint32_t slot = 1u << i;
@@ -114,7 +160,7 @@ void AutoEquipActor(RE::Actor* actor){
                 false
             );
 
-        debug_output("Redresser: {}: equipped {}", actor->GetName(), armor->GetName());
+        debug_output("Redresser: -- {}: equipped {} --", actor->GetName(), armor->GetName());
     }
 }
 
