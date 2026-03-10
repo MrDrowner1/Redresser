@@ -63,7 +63,7 @@ void ProcessActors(){
 }
 
 void AutoEquipActor(RE::Actor* actor){
-    // Skipping player, active followers, animals and dead people
+    // Skipping player, active followers, animals
     if (!actor || actor->IsPlayerRef() || !actor->Get3D() || actor->IsPlayerTeammate() || actor->HasKeyword(g_keywordAnimal))
         return;
 
@@ -83,6 +83,9 @@ void AutoEquipActor(RE::Actor* actor){
     debug_output("Redresser: scanning {}", actor->GetName());
     
     auto inv = actor->GetInventory();
+
+    // Collecting actor's armor
+    std::vector<RE::TESObjectARMO*> armorList;
 
     for (auto& [item, data] : inv) {
         if (!item || !item->IsArmor())
@@ -108,7 +111,25 @@ void AutoEquipActor(RE::Actor* actor){
         if (g_settings.equipMainSlotsOnly && !(armorSlots & mainSlots))
             continue;
 
+        armorList.push_back(armor);
+    }
+
+    // Sorting armor by rating
+    std::sort(
+        armorList.begin(),
+        armorList.end(),
+        [](RE::TESObjectARMO* a, RE::TESObjectARMO* b)
+        {
+            return a->GetArmorRating() > b->GetArmorRating();
+        }
+    );
+
+    // Equipping armor
+    for (auto* armor : armorList) {
+
         bool slotOccupied = false;
+
+        auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
 
         for (uint32_t i = 0; i < 32; i++) {
             uint32_t slot = 1u << i;

@@ -17,7 +17,7 @@ public:
             return RE::BSEventNotifyControl::kContinue;
 
         if (MenuEvent->menuName == RE::LoadingMenu::MENU_NAME && !MenuEvent->opening){
-            // skipping 2 frames, just in case
+            // skipping 2 frames
             SKSE::GetTaskInterface()->AddTask([]() {
             SKSE::GetTaskInterface()->AddTask([]() {
                 debug_output("Redresser: <starting>");
@@ -40,6 +40,15 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
         auto ui = RE::UI::GetSingleton();
         if (ui)
             ui->AddEventSink<RE::MenuOpenCloseEvent>(&g_loadingMenuSink);
+    }
+    else if (message->type == SKSE::MessagingInterface::kPostLoadGame){
+        // skipping 2 frames
+            SKSE::GetTaskInterface()->AddTask([]() {
+            SKSE::GetTaskInterface()->AddTask([]() {
+                debug_output("Redresser: <starting after save load>");
+                ProcessActors();
+            });
+            });
     }
 }
                 
