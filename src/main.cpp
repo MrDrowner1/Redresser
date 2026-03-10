@@ -20,7 +20,7 @@ public:
             // skipping 2 frames, just in case
             SKSE::GetTaskInterface()->AddTask([]() {
             SKSE::GetTaskInterface()->AddTask([]() {
-                debug_output("Redresser: starting");
+                debug_output("Redresser: <starting>");
                 ProcessActors();
             });
             });
