@@ -9,10 +9,6 @@ void ProcessActors(){
         return;
     }
 
-    auto processLists = RE::ProcessLists::GetSingleton();
-    if (!processLists)
-        return;
-
     auto player = RE::PlayerCharacter::GetSingleton();
     auto cell = player ? player->GetParentCell() : nullptr;
     if (!cell)
@@ -53,6 +49,10 @@ void ProcessActors(){
             }
         }
     }
+
+    auto processLists = RE::ProcessLists::GetSingleton();
+    if (!processLists)
+        return;
 
     debug_output("Redresser: <processing actors from the last visited cell>", processLists->middleHighActorHandles.size());
     for (auto& handle : processLists->middleHighActorHandles) {
