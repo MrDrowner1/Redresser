@@ -14,6 +14,7 @@ void ProcessActors(){
     if (!cell)
         return;
 
+    // Scanning actors by references
     if (cell->IsInteriorCell()) {
         debug_output("Redresser: <scanning an interior cell>");
         for (auto& refPtr : cell->GetRuntimeData().references) {
@@ -50,6 +51,7 @@ void ProcessActors(){
         }
     }
 
+    // Scanning actors by process list to get actors from the previous cell
     auto processLists = RE::ProcessLists::GetSingleton();
     if (!processLists)
         return;
