@@ -18,6 +18,8 @@ struct Settings
     
     bool skipPlayerHome = true;
 
+    bool giveDefaultItems = true;
+
     void Initialize();
 };
 

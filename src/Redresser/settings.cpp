@@ -23,4 +23,6 @@ void Settings::Initialize()
     equipMainSlotsOnly = ini.GetBoolValue("General", "EquipMainSlotsOnly", true);
     
     skipPlayerHome = ini.GetBoolValue("General", "SkipPlayerHome", true);
+
+    giveDefaultItems = ini.GetBoolValue("General", "GiveDefaultItems", true);
 }
