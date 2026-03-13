@@ -1,3 +1,3 @@
 # NPC Redresser
 
-SKSE plugin that makes NPCs put on clothes they already have in their inventory.
+SKSE plugin that makes NPCs dress themselves.
