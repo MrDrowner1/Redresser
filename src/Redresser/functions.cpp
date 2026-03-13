@@ -92,8 +92,8 @@ void AutoEquipActor(RE::Actor* actor){
     debug_output("Redresser: scanning {}", actor->GetName());
         
 
-    // Gives default items to NPC if they don't have anything else to cover up with
-    if(isMissingMainArmor(actor) && g_settings.giveDefaultItems)
+    // Gives default items to alive NPC if they don't have anything else to cover up with
+    if(isMissingMainArmor(actor) && !actor->IsDead() && g_settings.giveDefaultItems)
         GiveDefaultOutfitItems(actor);
     
 
