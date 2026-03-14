@@ -20,7 +20,7 @@ void Settings::Initialize()
 
     dressDeadActors = ini.GetBoolValue("General", "DressDeadActors", true);
 
-    dressAliveActors = ini.GetBoolValue("General", "DzressAliveActors", true);
+    dressAliveActors = ini.GetBoolValue("General", "DressAliveActors", true);
 
     equipMainSlotsOnly = ini.GetBoolValue("General", "EquipMainSlotsOnly", true);
     
