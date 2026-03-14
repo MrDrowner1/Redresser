@@ -41,6 +41,18 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
         if (ui)
             ui->AddEventSink<RE::MenuOpenCloseEvent>(&g_loadingMenuSink);
     }
+    // Needed for VR
+    /*
+    else if (message->type == SKSE::MessagingInterface::kPostLoadGame){
+        // skipping 2 frames
+        SKSE::GetTaskInterface()->AddTask([]() {
+        SKSE::GetTaskInterface()->AddTask([]() {
+            debug_output("Redresser: <starting after save load>");
+            ProcessActors();
+        });
+        });
+    }
+    */
 }
                 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
