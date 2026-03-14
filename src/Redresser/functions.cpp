@@ -80,6 +80,11 @@ void AutoEquipActor(RE::Actor* actor){
     if (!g_settings.dressDeadActors && actor->IsDead())
         return;
 
+    // Checking for an alive actor
+    if (!g_settings.dressAliveActors && !actor->IsDead())
+        return;
+
+
     if (g_settings.selectedActors == Settings::NPCPool::NakedOnly && !isNaked(actor)){
         debug_output("Redresser: {} is not naked, skipping", actor->GetName());
         return;
@@ -93,7 +98,7 @@ void AutoEquipActor(RE::Actor* actor){
         
 
     // Gives default items to alive NPC if they don't have anything else to cover up with
-    if(isMissingMainArmor(actor) && !actor->IsDead() && g_settings.giveDefaultItems)
+    if(isMissingMainArmor(actor) && g_settings.giveDefaultItems)
         GiveDefaultOutfitItems(actor);
     
 

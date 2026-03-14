@@ -20,6 +20,8 @@ void Settings::Initialize()
 
     dressDeadActors = ini.GetBoolValue("General", "DressDeadActors", true);
 
+    dressAliveActors = ini.GetBoolValue("General", "DzressAliveActors", true);
+
     equipMainSlotsOnly = ini.GetBoolValue("General", "EquipMainSlotsOnly", true);
     
     skipPlayerHome = ini.GetBoolValue("General", "SkipPlayerHome", true);
