@@ -76,6 +76,16 @@ void AutoEquipActor(RE::Actor* actor){
         return;
     }
 
+    // Checking if in a SexLab scene
+    auto* SexLabInfo = RE::TESDataHandler::GetSingleton()->LookupModByName("SexLab.esm");
+    RE::FormID formID = (static_cast<RE::FormID>(SexLabInfo->GetPartialIndex()) << 24) | 0x00E50F;
+    auto* sexLabAnimatingFaction = RE::TESForm::LookupByID<RE::TESFaction>(formID);
+    
+    if (sexLabAnimatingFaction && actor->IsInFaction(sexLabAnimatingFaction)){
+        debug_output("Redresser: {} is in a SexLab scene, skipping", actor->GetName());
+        return;
+    }
+
     // Checking for a dead actor
     if (!g_settings.dressDeadActors && actor->IsDead())
         return;
