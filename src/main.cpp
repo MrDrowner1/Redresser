@@ -17,6 +17,8 @@ public:
             return RE::BSEventNotifyControl::kContinue;
 
         if (MenuEvent->menuName == RE::LoadingMenu::MENU_NAME && !MenuEvent->opening){
+            g_settings.Initialize();
+
             // skipping 2 frames, just in case
             SKSE::GetTaskInterface()->AddTask([]() {
             SKSE::GetTaskInterface()->AddTask([]() {

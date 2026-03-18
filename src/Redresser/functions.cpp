@@ -66,30 +66,20 @@ void ProcessActors(){
 }
 
 void AutoEquipActor(RE::Actor* actor){
-    // Skipping player, animals
+    // Skipping player, animals, basic checks
     if (!actor || actor->IsPlayerRef() || !actor->Get3D() || actor->HasKeyword(g_keywordAnimal)){
         return;
     }
 
-    //Checking if sleeping
+    //Checking if actor is sleeping
     if (g_settings.skipSleepingActors && actor->AsActorState()->GetSitSleepState() == RE::SIT_SLEEP_STATE::kIsSleeping){
         debug_output("Redresser: {} is sleeping, skipping", actor->GetName());
         return;
     }
     
-    // Checking active followers
+    // Checking if actor is an active follower
     if (g_settings.skipActiveFollowers && actor->IsPlayerTeammate()){
         debug_output("Redresser: {} is player's teammate, skipping", actor->GetName());
-        return;
-    }
-
-    // Checking if in a SexLab scene
-    auto* SexLabInfo = RE::TESDataHandler::GetSingleton()->LookupModByName("SexLab.esm");
-    RE::FormID formID = (static_cast<RE::FormID>(SexLabInfo->GetPartialIndex()) << 24) | 0x00E50F;
-    auto* sexLabAnimatingFaction = RE::TESForm::LookupByID<RE::TESFaction>(formID);
-    
-    if (sexLabAnimatingFaction && actor->IsInFaction(sexLabAnimatingFaction)){
-        debug_output("Redresser: {} is in a SexLab scene, skipping", actor->GetName());
         return;
     }
 
@@ -101,7 +91,7 @@ void AutoEquipActor(RE::Actor* actor){
     if (!g_settings.dressAliveActors && !actor->IsDead())
         return;
 
-
+    // Checking the selected actors option
     if (g_settings.selectedActors == Settings::NPCPool::NakedOnly && !isNaked(actor)){
         debug_output("Redresser: {} is not naked, skipping", actor->GetName());
         return;
@@ -111,8 +101,22 @@ void AutoEquipActor(RE::Actor* actor){
         return;
     }
 
+    // Checking if actor is in a SexLab scene
+    auto* SexLabInfo = RE::TESDataHandler::GetSingleton()->LookupModByName("SexLab.esm");
+    if(SexLabInfo){
+        RE::FormID formID = (static_cast<RE::FormID>(SexLabInfo->GetPartialIndex()) << 24) | 0x00E50F;
+        if(formID){
+            auto* sexLabAnimatingFaction = RE::TESForm::LookupByID<RE::TESFaction>(formID);
+            
+            if (sexLabAnimatingFaction && actor->IsInFaction(sexLabAnimatingFaction)){
+                debug_output("Redresser: {} is in a SexLab scene, skipping", actor->GetName());
+                return;
+            }
+        }
+    }
+
+
     debug_output("Redresser: scanning {}", actor->GetName());
-        
 
     // Gives default items to alive NPC if they don't have anything else to cover up with
     if(isMissingMainArmor(actor) && g_settings.giveDefaultItems)
