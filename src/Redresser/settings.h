@@ -14,6 +14,8 @@ struct Settings
 
     bool dressDeadActors = true;
 
+    bool dressAliveActors = true;
+
     bool equipMainSlotsOnly = true;
     
     bool skipPlayerHome = true;
