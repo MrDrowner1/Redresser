@@ -44,8 +44,10 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
             ui->AddEventSink<RE::MenuOpenCloseEvent>(&g_loadingMenuSink);
     }
     // Needed for VR
-    /*
+    
     else if (message->type == SKSE::MessagingInterface::kPostLoadGame){
+        g_settings.Initialize();
+
         // skipping 2 frames
         SKSE::GetTaskInterface()->AddTask([]() {
         SKSE::GetTaskInterface()->AddTask([]() {
@@ -54,7 +56,7 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
         });
         });
     }
-    */
+    
 }
                 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
