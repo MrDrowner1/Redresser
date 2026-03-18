@@ -24,5 +24,9 @@ void Settings::Initialize()
     
     skipPlayerHome = ini.GetBoolValue("General", "SkipPlayerHome", true);
 
+    skipActiveFollowers = ini.GetBoolValue("General", "SkipActiveFollowers", true);
+
+    skipSleepingActors = ini.GetBoolValue("General", "SkipSleepingActors", true);
+    
     giveDefaultItems = ini.GetBoolValue("General", "GiveDefaultItems", true);
 }

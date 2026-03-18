@@ -18,6 +18,10 @@ struct Settings
     
     bool skipPlayerHome = true;
 
+    bool skipActiveFollowers = true;
+
+    bool skipSleepingActors = true;
+
     bool giveDefaultItems = true;
 
     void Initialize();

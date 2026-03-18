@@ -1,6 +1,7 @@
 #include "functions.h"
 #include "debug_output.h"
 #include "settings.h"
+#include "RE/A/ActorState.h"
 
 void ProcessActors(){
     // Skipping player homes
@@ -70,8 +71,14 @@ void AutoEquipActor(RE::Actor* actor){
         return;
     }
 
+    //Checking if sleeping
+    if (g_settings.skipSleepingActors && actor->AsActorState()->GetSitSleepState() == RE::SIT_SLEEP_STATE::kIsSleeping){
+        debug_output("Redresser: {} is sleeping, skipping", actor->GetName());
+        return;
+    }
+    
     // Checking active followers
-    if(actor->IsPlayerTeammate()){
+    if (g_settings.skipActiveFollowers && actor->IsPlayerTeammate()){
         debug_output("Redresser: {} is player's teammate, skipping", actor->GetName());
         return;
     }
