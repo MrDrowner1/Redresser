@@ -25,3 +25,7 @@ bool hasItemForSlot(RE::Actor* actor, RE::TESForm* item);
 RE::BGSBipedObjectForm::BipedObjectSlot GetOutfitItemSlot(RE::TESForm* form);
 
 bool isOutfitItem(RE::BGSOutfit* outfit, RE::TESForm* item);
+
+bool isInFaction(RE::Actor* actor, std::string_view factionEditorID);
+
+bool hasKeyword(RE::Actor* actor, std::string_view keywordEditorID);

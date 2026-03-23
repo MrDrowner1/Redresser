@@ -115,6 +115,22 @@ void AutoEquipActor(RE::Actor* actor){
         }
     }
 
+    // Checking for excluded factions
+    for (const auto& factionEditorID : g_settings.excludedFactions) {
+        if (isInFaction(actor, factionEditorID)) {
+            debug_output("Redresser: {} is in {} faction, skipping", actor->GetName(), factionEditorID);
+            return;
+        }
+    }
+
+    //Checking for excluded keywords
+    for (const auto& keywordEditorID : g_settings.excludedKeywords) {
+        if (hasKeyword(actor, keywordEditorID)) {
+            debug_output("Redresser: {} has {} keyword, skipping", actor->GetName(), keywordEditorID);
+            return;
+        }
+    }
+
 
     debug_output("Redresser: scanning {}", actor->GetName());
 
@@ -378,4 +394,46 @@ RE::BGSBipedObjectForm::BipedObjectSlot GetOutfitItemSlot(RE::TESForm* form) {
     }
 
     return RE::BGSBipedObjectForm::BipedObjectSlot::kNone;
+}
+
+
+bool isInFaction(RE::Actor* actor, std::string_view factionEditorID)
+{
+    if (!actor) return false;
+
+    auto* form = RE::TESForm::LookupByEditorID(factionEditorID);
+    if (!form)
+        return false;
+
+    auto* targetFaction = form->As<RE::TESFaction>();
+    if (!targetFaction)
+        return false;
+
+    auto* actorBaseData = static_cast<RE::TESActorBaseData*>(actor->GetActorBase());
+    if (!actorBaseData)
+        return false;
+
+    for (const auto& entry : actorBaseData->factions) {
+        if (entry.faction == targetFaction)
+            return true;
+    }
+
+    return false;
+}
+
+
+bool hasKeyword(RE::Actor* actor, std::string_view keywordEditorID)
+{
+    if (!actor) return false;
+
+    auto* base = actor->GetActorBase();
+    if (!base) return false;
+
+    for (std::uint32_t i = 0; i < base->numKeywords; i++) {
+        auto* kw = base->keywords[i];
+        if (kw && std::string_view(kw->GetFormEditorID()) == keywordEditorID)
+            return true;
+    }
+
+    return false;
 }

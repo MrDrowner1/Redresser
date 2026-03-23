@@ -26,7 +26,15 @@ struct Settings
 
     bool giveDefaultItems = true;
 
+    std::vector<std::string> excludedFactions;
+    std::string rawExcludedFactions = "";
+
+    std::vector<std::string> excludedKeywords;
+    std::string rawExcludedKeywords = "";
+
     void Initialize();
+
+    static void ParseList(const std::string& raw, std::vector<std::string>& out);
 };
 
 inline Settings g_settings;

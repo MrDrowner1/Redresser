@@ -1,6 +1,22 @@
 #include "settings.h"
 #include <SimpleIni.h>
 
+
+void Settings::ParseList(const std::string& raw, std::vector<std::string>& out)
+{
+    out.clear();
+    std::stringstream ss(raw);
+    std::string token;
+    while (std::getline(ss, token, ',')) {
+        auto start = token.find_first_not_of(" \t");
+        auto end = token.find_last_not_of(" \t");
+        token = (start != std::string::npos) ? token.substr(start, end - start + 1) : "";
+        if (!token.empty())
+            out.push_back(token);
+    }
+}
+
+
 void Settings::Initialize()
 {
     constexpr auto path = "Data/SKSE/Plugins/Redresser.ini";
@@ -31,4 +47,10 @@ void Settings::Initialize()
     skipSleepingActors = ini.GetBoolValue("General", "SkipSleepingActors", true);
     
     giveDefaultItems = ini.GetBoolValue("General", "GiveDefaultItems", true);
+
+    rawExcludedFactions = ini.GetValue("General", "ExcludedFactions", "");
+    Settings::ParseList(rawExcludedFactions, excludedFactions);
+
+    rawExcludedKeywords = ini.GetValue("General", "ExcludedKeywords", "");
+    Settings::ParseList(rawExcludedKeywords, excludedKeywords);
 }
