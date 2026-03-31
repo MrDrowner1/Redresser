@@ -48,6 +48,14 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
     else if (message->type == SKSE::MessagingInterface::kPostLoadGame){
         g_settings.Initialize();
 
+        logger::info("Game loaded");
+
+        auto excludedFactionsStr = g_settings.excludedFactions | std::views::join_with(std::string(", ")) | std::ranges::to<std::string>();
+        logger::info("Excluded factions: {}", excludedFactionsStr);
+
+        auto excludedKeywordsStr = g_settings.excludedKeywords | std::views::join_with(std::string(", ")) | std::ranges::to<std::string>();
+        logger::info("Excluded keywords: {}", excludedKeywordsStr);
+
         // skipping 2 frames
         SKSE::GetTaskInterface()->AddTask([]() {
         SKSE::GetTaskInterface()->AddTask([]() {
@@ -67,6 +75,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
     if (!messaging->RegisterListener("SKSE", SKSEMessageHandler)) {
         return false;
     }
+
+    logger::info("Game version : {}", a_skse->RuntimeVersion());
 
     return true;
 }

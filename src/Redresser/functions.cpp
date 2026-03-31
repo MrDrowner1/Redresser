@@ -101,20 +101,6 @@ void AutoEquipActor(RE::Actor* actor){
         return;
     }
 
-    // Checking if actor is in a SexLab scene
-    auto* SexLabInfo = RE::TESDataHandler::GetSingleton()->LookupModByName("SexLab.esm");
-    if(SexLabInfo){
-        RE::FormID formID = (static_cast<RE::FormID>(SexLabInfo->GetPartialIndex()) << 24) | 0x00E50F;
-        if(formID){
-            auto* sexLabAnimatingFaction = RE::TESForm::LookupByID<RE::TESFaction>(formID);
-            
-            if (sexLabAnimatingFaction && actor->IsInFaction(sexLabAnimatingFaction)){
-                debug_output("Redresser: {} is in a SexLab scene, skipping", actor->GetName());
-                return;
-            }
-        }
-    }
-
     // Checking for excluded factions
     for (const auto& factionEditorID : g_settings.excludedFactions) {
         if (isInFaction(actor, factionEditorID)) {
