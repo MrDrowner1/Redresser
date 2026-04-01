@@ -26,15 +26,20 @@ struct Settings
 
     bool giveDefaultItems = true;
 
-    std::vector<std::string> excludedFactions;
-    std::string rawExcludedFactions = "";
+    std::set<std::string> excludedFactions;
 
-    std::vector<std::string> excludedKeywords;
-    std::string rawExcludedKeywords = "";
+    std::set<std::string> excludedKeywords;
+    
+    void LoadConfig();
 
-    void Initialize();
+    void LoadRedressFiles();
 
-    static void ParseList(const std::string& raw, std::vector<std::string>& out);
+    static void ParseList(const std::string& raw, std::set<std::string>& out);
+
+    private:
+        // From dynamically loaded ini files
+        std::set<std::string> loadedFactions;
+        std::set<std::string> loadedKeywords;
 };
 
 inline Settings g_settings;

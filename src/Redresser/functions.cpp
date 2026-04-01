@@ -101,6 +101,12 @@ void AutoEquipActor(RE::Actor* actor){
         return;
     }
 
+    // Checking if actor is in a SexLab scene
+    if (isInFaction(actor, "SexLabAnimatingFaction")) {
+        debug_output("Redresser: {} is in a SexLab scene, skipping", actor->GetName());
+        return;
+    }
+
     // Checking for excluded factions
     for (const auto& factionEditorID : g_settings.excludedFactions) {
         if (isInFaction(actor, factionEditorID)) {
@@ -410,14 +416,22 @@ bool isInFaction(RE::Actor* actor, std::string_view factionEditorID)
 
 bool hasKeyword(RE::Actor* actor, std::string_view keywordEditorID)
 {
-    if (!actor) return false;
+    if (!actor) 
+        return false;
 
     auto* base = actor->GetActorBase();
-    if (!base) return false;
+    if (!base) 
+        return false;
 
     for (std::uint32_t i = 0; i < base->numKeywords; i++) {
         auto* kw = base->keywords[i];
-        if (kw && std::string_view(kw->GetFormEditorID()) == keywordEditorID)
+        if (!kw)
+            continue;
+        
+        std::string editorID = kw->GetFormEditorID();
+        std::transform(editorID.begin(), editorID.end(), editorID.begin(), ::tolower);
+        
+        if (editorID == keywordEditorID)
             return true;
     }
 
