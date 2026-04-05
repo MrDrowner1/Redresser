@@ -115,6 +115,15 @@ void AutoEquipActor(RE::Actor* actor){
         }
     }
 
+    // Building ignored slot mask from FactionSlotsIgnore entries
+    uint32_t ignoredSlotMask = 0;
+    for (const auto& [factionEditorID, mask] : g_settings.factionSlotsIgnore) {
+        if (isInFaction(actor, factionEditorID)) {
+            debug_output("Redresser: {} is in {} faction, ignoring slots {:08X}", actor->GetName(), factionEditorID, mask);
+            ignoredSlotMask |= mask;
+        }
+    }
+
     //Checking for excluded keywords
     for (const auto& keywordEditorID : g_settings.excludedKeywords) {
         if (hasKeyword(actor, keywordEditorID)) {
@@ -176,9 +185,15 @@ void AutoEquipActor(RE::Actor* actor){
     // Equipping armor
     for (auto* armor : armorList) {
 
-        bool slotOccupied = false;
-
         auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
+
+        // Skip armor if all its slots are in the ignored mask
+        if (ignoredSlotMask && (armorSlots & ignoredSlotMask) == armorSlots) {
+            debug_output("Redresser: -- {}: skipping {} (ignored slot found) --", actor->GetName(), armor->GetName());
+            continue;
+        }
+
+        bool slotOccupied = false;
 
         for (uint32_t i = 0; i < 32; i++) {
             uint32_t slot = 1u << i;
