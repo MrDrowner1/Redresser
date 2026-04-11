@@ -16,16 +16,21 @@ public:
         if (!MenuEvent)
             return RE::BSEventNotifyControl::kContinue;
 
-        if (MenuEvent->menuName == RE::LoadingMenu::MENU_NAME && !MenuEvent->opening){
-            g_settings.Initialize();
+        if (MenuEvent->menuName == RE::LoadingMenu::MENU_NAME 
+            && !MenuEvent->opening
+            && !RE::UI::GetSingleton()->IsMenuOpen(RE::MainMenu::MENU_NAME)){
+                g_settings.LoadConfig();
 
-            // skipping 2 frames, just in case
-            SKSE::GetTaskInterface()->AddTask([]() {
-            SKSE::GetTaskInterface()->AddTask([]() {
-                debug_output("Redresser: <starting>");
-                ProcessActors();
-            });
-            });
+                auto excludedFactionsStr = g_settings.excludedFactions | std::views::join_with(std::string(", ")) | std::ranges::to<std::string>();
+                logger::info("Excluded factions: {}", excludedFactionsStr);
+
+                auto excludedKeywordsStr = g_settings.excludedKeywords | std::views::join_with(std::string(", ")) | std::ranges::to<std::string>();
+                logger::info("Excluded keywords: {}", excludedKeywordsStr);
+
+                SKSE::GetTaskInterface()->AddTask([]() {
+                    debug_output("Redresser: <starting>");
+                    ProcessActors();
+                });
         }
 
         return RE::BSEventNotifyControl::kContinue;
@@ -37,26 +42,27 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
     static LoadingMenuSink g_loadingMenuSink;
 
 	if (message->type == SKSE::MessagingInterface::kDataLoaded){
-        g_settings.Initialize();
-        InitializeKeywords();
+        // Initializing
+        InitializeKeywords(); 
+        g_settings.LoadRedressFiles();
+
         auto ui = RE::UI::GetSingleton();
         if (ui)
             ui->AddEventSink<RE::MenuOpenCloseEvent>(&g_loadingMenuSink);
     }
     // Needed for VR
-    
+    /*
     else if (message->type == SKSE::MessagingInterface::kPostLoadGame){
-        g_settings.Initialize();
+        g_settings.LoadConfig();
 
-        // skipping 2 frames
-        SKSE::GetTaskInterface()->AddTask([]() {
+        logger::info("Game loaded");
+
         SKSE::GetTaskInterface()->AddTask([]() {
             debug_output("Redresser: <starting after save load>");
             ProcessActors();
         });
-        });
     }
-    
+    */
 }
                 
 extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_skse)
@@ -67,6 +73,8 @@ extern "C" DLLEXPORT bool SKSEAPI SKSEPlugin_Load(const SKSE::LoadInterface* a_s
     if (!messaging->RegisterListener("SKSE", SKSEMessageHandler)) {
         return false;
     }
+
+    logger::info("Game version : {}", a_skse->RuntimeVersion());
 
     return true;
 }

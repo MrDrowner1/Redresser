@@ -102,16 +102,33 @@ void AutoEquipActor(RE::Actor* actor){
     }
 
     // Checking if actor is in a SexLab scene
-    auto* SexLabInfo = RE::TESDataHandler::GetSingleton()->LookupModByName("SexLab.esm");
-    if(SexLabInfo){
-        RE::FormID formID = (static_cast<RE::FormID>(SexLabInfo->GetPartialIndex()) << 24) | 0x00E50F;
-        if(formID){
-            auto* sexLabAnimatingFaction = RE::TESForm::LookupByID<RE::TESFaction>(formID);
-            
-            if (sexLabAnimatingFaction && actor->IsInFaction(sexLabAnimatingFaction)){
-                debug_output("Redresser: {} is in a SexLab scene, skipping", actor->GetName());
-                return;
-            }
+    if (isInFaction(actor, "SexLabAnimatingFaction")) {
+        debug_output("Redresser: {} is in a SexLab scene, skipping", actor->GetName());
+        return;
+    }
+
+    // Checking for excluded factions
+    for (const auto& factionEditorID : g_settings.excludedFactions) {
+        if (isInFaction(actor, factionEditorID)) {
+            debug_output("Redresser: {} is in {} faction, skipping", actor->GetName(), factionEditorID);
+            return;
+        }
+    }
+
+    // Building ignored slot mask from FactionSlotsIgnore entries
+    uint32_t ignoredSlotMask = 0;
+    for (const auto& [factionEditorID, mask] : g_settings.factionSlotsIgnore) {
+        if (isInFaction(actor, factionEditorID)) {
+            debug_output("Redresser: {} is in {} faction, ignoring slots {:08X}", actor->GetName(), factionEditorID, mask);
+            ignoredSlotMask |= mask;
+        }
+    }
+
+    //Checking for excluded keywords
+    for (const auto& keywordEditorID : g_settings.excludedKeywords) {
+        if (hasKeyword(actor, keywordEditorID)) {
+            debug_output("Redresser: {} has {} keyword, skipping", actor->GetName(), keywordEditorID);
+            return;
         }
     }
 
@@ -168,9 +185,15 @@ void AutoEquipActor(RE::Actor* actor){
     // Equipping armor
     for (auto* armor : armorList) {
 
-        bool slotOccupied = false;
-
         auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
+
+        // Skipping armor if all its slots are in the ignored mask
+        if (ignoredSlotMask && (armorSlots & ignoredSlotMask) == armorSlots) {
+            debug_output("Redresser: -- {}: skipping {} (ignored slot found) --", actor->GetName(), armor->GetName());
+            continue;
+        }
+
+        bool slotOccupied = false;
 
         for (uint32_t i = 0; i < 32; i++) {
             uint32_t slot = 1u << i;
@@ -378,4 +401,54 @@ RE::BGSBipedObjectForm::BipedObjectSlot GetOutfitItemSlot(RE::TESForm* form) {
     }
 
     return RE::BGSBipedObjectForm::BipedObjectSlot::kNone;
+}
+
+
+bool isInFaction(RE::Actor* actor, std::string_view factionEditorID)
+{
+    if (!actor) return false;
+
+    auto* form = RE::TESForm::LookupByEditorID(factionEditorID);
+    if (!form)
+        return false;
+
+    auto* targetFaction = form->As<RE::TESFaction>();
+    if (!targetFaction)
+        return false;
+
+    auto* actorBaseData = static_cast<RE::TESActorBaseData*>(actor->GetActorBase());
+    if (!actorBaseData)
+        return false;
+
+    for (const auto& entry : actorBaseData->factions) {
+        if (entry.faction == targetFaction)
+            return true;
+    }
+
+    return false;
+}
+
+
+bool hasKeyword(RE::Actor* actor, std::string_view keywordEditorID)
+{
+    if (!actor) 
+        return false;
+
+    auto* base = actor->GetActorBase();
+    if (!base) 
+        return false;
+
+    for (std::uint32_t i = 0; i < base->numKeywords; i++) {
+        auto* kw = base->keywords[i];
+        if (!kw)
+            continue;
+        
+        std::string editorID = kw->GetFormEditorID();
+        std::transform(editorID.begin(), editorID.end(), editorID.begin(), ::tolower);
+        
+        if (editorID == keywordEditorID)
+            return true;
+    }
+
+    return false;
 }
