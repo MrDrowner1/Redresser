@@ -61,6 +61,8 @@ void Settings::ParseFactionSlotEntry(const std::string& raw, std::map<std::strin
 
 void Settings::LoadRedressFiles()
 {
+    loadedFactions.clear();
+    loadedKeywords.clear();
     loadedFactionSlots.clear();
 
     const std::filesystem::path dataDir("Data");
