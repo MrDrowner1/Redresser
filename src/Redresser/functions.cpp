@@ -187,7 +187,7 @@ void AutoEquipActor(RE::Actor* actor){
 
         auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
 
-        // Skip armor if all its slots are in the ignored mask
+        // Skipping armor if all its slots are in the ignored mask
         if (ignoredSlotMask && (armorSlots & ignoredSlotMask) == armorSlots) {
             debug_output("Redresser: -- {}: skipping {} (ignored slot found) --", actor->GetName(), armor->GetName());
             continue;

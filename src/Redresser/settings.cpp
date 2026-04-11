@@ -1,5 +1,6 @@
 #include "settings.h"
 #include <SimpleIni.h>
+#include <fstream>
 
 
 void Settings::ParseList(const std::string& raw, std::set<std::string>& out)
@@ -105,7 +106,9 @@ void Settings::LoadConfig()
     ini.SetMultiKey(true);
 
     if (ini.LoadFile(path) < 0) {
-        return;
+        GenerateDefaultIni(path);
+        if (ini.LoadFile(path) < 0)
+            return;
     }
 
     debug = ini.GetBoolValue("General", "Debug", false);
@@ -117,7 +120,7 @@ void Settings::LoadConfig()
 
     dressAliveActors = ini.GetBoolValue("General", "DressAliveActors", true);
 
-    equipMainSlotsOnly = ini.GetBoolValue("General", "EquipMainSlotsOnly", true);
+    equipMainSlotsOnly = ini.GetBoolValue("General", "EquipMainSlotsOnly", false);
     
     skipPlayerHome = ini.GetBoolValue("General", "SkipPlayerHome", true);
 
@@ -146,4 +149,64 @@ void Settings::LoadConfig()
     // Merging entries from loaded ini files
     for (const auto& [faction, mask] : loadedFactionSlots)
         factionSlotsIgnore[faction] |= mask;
+}
+
+
+void Settings::GenerateDefaultIni(const char* path)
+{
+    std::filesystem::path filePath(path);
+    std::error_code ec;
+    std::filesystem::create_directories(filePath.parent_path(), ec);
+
+    std::ofstream f(filePath);
+    if (!f) {
+        logger::warn("Failed to generate default ini at {}", path);
+        return;
+    }
+
+    f << "[General]\n"
+      << "; Verbose messages in the console about what this mod does.\n"
+      << "Debug = false\n"
+      << "\n"
+      << "; Gives NPCs default clothes if they don't have anything to cover themselves with.\n"
+      << "GiveDefaultItems = true\n"
+      << "\n"
+      << "; Who will be selected for redressing:\n"
+      << "; 0 = Everyone\n"
+      << "; 1 = Only fully naked NPCs (must have all 4 slots empty: Body, Hands, Feet, Head)\n"
+      << "; 2 = Only NPCs with no main armor equipped (at least the Body slot is empty)\n"
+      << "SelectedActors = 2\n"
+      << "\n"
+      << "; Restricts the mod to equipping only Body, Hands, Feet or Head items.\n"
+      << "; This prevents NPCs from equipping jewelry and other misc items that were previously stashed in their pockets.\n"
+      << "EquipMainSlotsOnly = false\n"
+      << "\n"
+      << "; Enables dressing up dead NPCs.\n"
+      << "DressDeadActors = true\n"
+      << "\n"
+      << "; Enables dressing up alive NPCs.\n"
+      << "DressAliveActors = true\n"
+      << "\n"
+      << "; Nudity is allowed in player homes.\n"
+      << "SkipPlayerHome = true\n"
+      << "\n"
+      << "; Active followers won't be dressed.\n"
+      << "SkipActiveFollowers = true\n"
+      << "\n"
+      << "; Sleeping NPCs won't be dressed.\n"
+      << "SkipSleepingActors = true\n"
+      << "\n"
+      << "; Comma separated EditorIDs of the factions you want to exclude. Whitespaces are ignored.\n"
+      << "ExcludedFactions = \n"
+      << "\n"
+      << "; Comma separated EditorIDs of the keywords you want to exclude. Whitespaces are ignored.\n"
+      << "ExcludedKeywords = \n"
+      << "\n"
+      << "; Ignore specific slots per faction (one per line).\n"
+      << "; Example:\n"
+      << "; FactionSlotsIgnore = ExampleFaction1|33,32,37\n"
+      << "; FactionSlotsIgnore = ExampleFaction2|38,39,60\n"
+      << "FactionSlotsIgnore = \n";
+
+    logger::info("Generated default ini at {}", path);
 }

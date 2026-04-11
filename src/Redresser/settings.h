@@ -10,13 +10,13 @@ struct Settings
         NoMainArmorOnly = 2
     };
 
-    NPCPool selectedActors = NPCPool::Everyone;
+    NPCPool selectedActors = NPCPool::NoMainArmorOnly;
 
     bool dressDeadActors = true;
 
     bool dressAliveActors = true;
 
-    bool equipMainSlotsOnly = true;
+    bool equipMainSlotsOnly = false;
     
     bool skipPlayerHome = true;
 
@@ -35,6 +35,8 @@ struct Settings
     void LoadConfig();
 
     void LoadRedressFiles();
+
+    void GenerateDefaultIni(const char* path);
 
     static void ParseList(const std::string& raw, std::set<std::string>& out);
 

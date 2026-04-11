@@ -18,7 +18,7 @@ void InitializeKeywords();
 
 void GiveDefaultOutfitItems(RE::Actor* actor);
 
-RE::TESBoundObject* ResolveOutfitItem(RE::TESForm* form, uint16_t actorLevel);
+void ResolveOutfitItem(RE::TESForm* form, uint16_t actorLevel, std::vector<RE::TESBoundObject*>& out);
 
 bool hasItemForSlot(RE::Actor* actor, RE::TESForm* item);
 

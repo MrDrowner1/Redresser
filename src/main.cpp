@@ -27,12 +27,9 @@ public:
                 auto excludedKeywordsStr = g_settings.excludedKeywords | std::views::join_with(std::string(", ")) | std::ranges::to<std::string>();
                 logger::info("Excluded keywords: {}", excludedKeywordsStr);
 
-                // skipping 2 frames, just in case
-                SKSE::GetTaskInterface()->AddTask([]() {
                 SKSE::GetTaskInterface()->AddTask([]() {
                     debug_output("Redresser: <starting>");
                     ProcessActors();
-                });
                 });
         }
 
@@ -60,12 +57,9 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 
         logger::info("Game loaded");
 
-        // skipping 2 frames
-        SKSE::GetTaskInterface()->AddTask([]() {
         SKSE::GetTaskInterface()->AddTask([]() {
             debug_output("Redresser: <starting after save load>");
             ProcessActors();
-        });
         });
     }
     */
