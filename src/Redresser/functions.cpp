@@ -283,7 +283,6 @@ void ResolveOutfitItem(RE::TESForm* form, uint16_t actorLevel, std::vector<RE::T
     auto* armor = form->As<RE::TESObjectARMO>();
     if (armor) {
         out.push_back(armor);
-        debug_output("Redresser: >>>Got regular item from default outfit: {}", armor->GetName());
         return;
     }
 
@@ -296,7 +295,6 @@ void ResolveOutfitItem(RE::TESForm* form, uint16_t actorLevel, std::vector<RE::T
             auto* boundObj = calcedObj.form->As<RE::TESBoundObject>();
             if (boundObj) {
                 out.push_back(boundObj);
-                debug_output("Redresser: >>>Got a leveled list item from default outfit");
             }
         }
     }
