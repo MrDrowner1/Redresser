@@ -137,6 +137,10 @@ void Settings::LoadConfig()
     
     giveDefaultItems = ini.GetBoolValue("General", "GiveDefaultItems", true);
 
+    giveItemsIfDead = ini.GetBoolValue("General", "GiveItemsIfDead", false);
+
+    giveItemsOnlyIfMissingMainArmor = ini.GetBoolValue("General", "GiveItemsOnlyIfMissingMainArmor", true);
+
     rawExcludedFactions = ini.GetValue("General", "ExcludedFactions", "");
     ParseList(rawExcludedFactions, excludedFactions);
     // Adding the factions from loaded ini files
@@ -185,7 +189,9 @@ void Settings::SaveConfig()
     ini.SetBoolValue("General", "SkipPlayerHome",       skipPlayerHome,       nullptr, true);
     ini.SetBoolValue("General", "SkipActiveFollowers",  skipActiveFollowers,  nullptr, true);
     ini.SetBoolValue("General", "SkipSleepingActors",   skipSleepingActors,   nullptr, true);
-    ini.SetBoolValue("General", "GiveDefaultItems",     giveDefaultItems,     nullptr, true);
+    ini.SetBoolValue("General", "GiveDefaultItems",              giveDefaultItems,              nullptr, true);
+    ini.SetBoolValue("General", "GiveItemsIfDead",               giveItemsIfDead,               nullptr, true);
+    ini.SetBoolValue("General", "GiveItemsOnlyIfMissingMainArmor", giveItemsOnlyIfMissingMainArmor, nullptr, true);
     ini.SetValue("General",     "ExcludedFactions",     rawExcludedFactions.c_str(),  nullptr, true);
     ini.SetValue("General",     "ExcludedKeywords",     rawExcludedKeywords.c_str(),  nullptr, true);
 
@@ -233,6 +239,12 @@ void Settings::GenerateDefaultIni(const char* path)
       << "\n"
       << "; Gives NPCs default clothes if they don't have anything to cover themselves with.\n"
       << "GiveDefaultItems = true\n"
+      << "\n"
+      << "; Give default items to dead NPCs.\n"
+      << "GiveItemsIfDead = false\n"
+      << "\n"
+      << "; Only give default items if the NPC has no main armor (Body slot empty).\n"
+      << "GiveItemsOnlyIfMissingMainArmor = true\n"
       << "\n"
       << "; Who will be selected for redressing:\n"
       << "; 0 = Everyone\n"

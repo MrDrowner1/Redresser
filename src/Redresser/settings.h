@@ -26,6 +26,10 @@ struct Settings
 
     bool giveDefaultItems = true;
 
+    bool giveItemsIfDead = false;
+
+    bool giveItemsOnlyIfMissingMainArmor = true;
+
     std::set<std::string> excludedFactions;
 
     std::set<std::string> excludedKeywords;

@@ -135,9 +135,16 @@ void AutoEquipActor(RE::Actor* actor){
 
     debug_output("Redresser: scanning {}", actor->GetName());
 
-    // Gives default items to alive NPC if they don't have anything else to cover up with
-    if(g_settings.giveDefaultItems)
-        GiveDefaultOutfitItems(actor);
+    // Gives default items if configured conditions are met
+    if (g_settings.giveDefaultItems) {
+        bool shouldGive = true;
+        if (actor->IsDead() && !g_settings.giveItemsIfDead)
+            shouldGive = false;
+        if (g_settings.giveItemsOnlyIfMissingMainArmor && !isMissingMainArmor(actor))
+            shouldGive = false;
+        if (shouldGive)
+            GiveDefaultOutfitItems(actor);
+    }
     
 
     auto inv = actor->GetInventory();
@@ -180,8 +187,8 @@ void AutoEquipActor(RE::Actor* actor){
 
         auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
 
-        // Skipping armor if all its slots are in the ignored mask
-        if (ignoredSlotMask && (armorSlots & ignoredSlotMask) == armorSlots) {
+        // Skipping armor if any of its slots are in the ignored mask
+        if (ignoredSlotMask && (armorSlots & ignoredSlotMask)) {
             debug_output("Redresser: -- {}: skipping {} (ignored slot found) --", actor->GetName(), armor->GetName());
             continue;
         }
@@ -246,10 +253,7 @@ bool isPlayerHome(){
 
     // checking for player house keyword
     auto curLocation = player->GetCurrentLocation();
-    if (!curLocation)
-        return false;
-    
-    if (curLocation->HasKeyword(g_locTypePlayerHouse))
+    if (curLocation && curLocation->HasKeyword(g_locTypePlayerHouse))
         return true;
 
     // checking for cell ownership

@@ -104,7 +104,13 @@ void __stdcall UI::Settings::Render()
     }
 
 
-    if (ImGui::Checkbox("Give default items if necessary",       &g_settings.giveDefaultItems))    Save();
+    if (ImGui::Checkbox("Give default items if necessary", &g_settings.giveDefaultItems)) Save();
+    if (g_settings.giveDefaultItems) {
+        ImGui::Indent();
+        if (ImGui::Checkbox("Give items to dead NPCs",              &g_settings.giveItemsIfDead))                  Save();
+        if (ImGui::Checkbox("Only give items if the main armor is missing",       &g_settings.giveItemsOnlyIfMissingMainArmor))  Save();
+        ImGui::Unindent();
+    }
     if (ImGui::Checkbox("Dress dead NPCs",        &g_settings.dressDeadActors))    Save();
     if (ImGui::Checkbox("Dress alive NPCs",       &g_settings.dressAliveActors))   Save();
     if (ImGui::Checkbox("Skip player homes",         &g_settings.skipPlayerHome))     Save();
