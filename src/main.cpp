@@ -4,6 +4,7 @@
 #include <string>
 #include "Redresser/functions.h"
 #include "Redresser/debug_output.h"
+#include "Redresser/UI.h"
 
 class LoadingMenuSink:
     public RE::BSTEventSink<RE::MenuOpenCloseEvent>
@@ -43,8 +44,9 @@ static void SKSEMessageHandler(SKSE::MessagingInterface::Message* message)
 
 	if (message->type == SKSE::MessagingInterface::kDataLoaded){
         // Initializing
-        InitializeKeywords(); 
+        InitializeKeywords();
         g_settings.LoadRedressFiles();
+        UI::Register();
 
         auto ui = RE::UI::GetSingleton();
         if (ui)

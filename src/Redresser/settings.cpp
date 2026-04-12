@@ -90,8 +90,8 @@ void Settings::LoadRedressFiles()
 
         CSimpleIniA::TNamesDepend slotEntries;
         if (ini.GetAllValues("Redress", "FactionSlotsIgnore", slotEntries)) {
-            for (const auto& entry : slotEntries)
-                ParseFactionSlotEntry(entry.pItem, loadedFactionSlots);
+            for (const auto& slotEntry : slotEntries)
+                ParseFactionSlotEntry(slotEntry.pItem, loadedFactionSlots);
         }
 
         logger::info("Loaded {}", entry.path().filename().string());
@@ -122,7 +122,12 @@ void Settings::LoadConfig()
 
     dressAliveActors = ini.GetBoolValue("General", "DressAliveActors", true);
 
-    equipMainSlotsOnly = ini.GetBoolValue("General", "EquipMainSlotsOnly", false);
+    try {
+        autoEquipSlots = static_cast<uint32_t>(
+            std::stoul(ini.GetValue("General", "AutoEquipSlots", "0x7FCFFFFF"), nullptr, 0));
+    } catch (...) {
+        autoEquipSlots = 0x7FCFFFFF;
+    }
     
     skipPlayerHome = ini.GetBoolValue("General", "SkipPlayerHome", true);
 
@@ -132,25 +137,87 @@ void Settings::LoadConfig()
     
     giveDefaultItems = ini.GetBoolValue("General", "GiveDefaultItems", true);
 
-    auto rawExcludedFactions = ini.GetValue("General", "ExcludedFactions", "");
+    giveItemsIfDead = ini.GetBoolValue("General", "GiveItemsIfDead", false);
+
+    giveItemsOnlyIfMissingMainArmor = ini.GetBoolValue("General", "GiveItemsOnlyIfMissingMainArmor", true);
+
+    rawExcludedFactions = ini.GetValue("General", "ExcludedFactions", "");
     ParseList(rawExcludedFactions, excludedFactions);
     // Adding the factions from loaded ini files
     excludedFactions.insert(loadedFactions.begin(), loadedFactions.end());
 
-    auto rawExcludedKeywords = ini.GetValue("General", "ExcludedKeywords", "");
+    rawExcludedKeywords = ini.GetValue("General", "ExcludedKeywords", "");
     ParseList(rawExcludedKeywords, excludedKeywords);
     // Adding the keywords from loaded ini files
     excludedKeywords.insert(loadedKeywords.begin(), loadedKeywords.end());
 
     factionSlotsIgnore.clear();
+    rawFactionSlotsIgnore.clear();
     CSimpleIniA::TNamesDepend slotEntries;
     if (ini.GetAllValues("General", "FactionSlotsIgnore", slotEntries)) {
-        for (const auto& entry : slotEntries)
-            ParseFactionSlotEntry(entry.pItem, factionSlotsIgnore);
+        for (const auto& entry : slotEntries) {
+            if (entry.pItem && entry.pItem[0] != '\0') {
+                rawFactionSlotsIgnore.push_back(entry.pItem);
+                ParseFactionSlotEntry(entry.pItem, factionSlotsIgnore);
+            }
+        }
     }
     // Merging entries from loaded ini files
     for (const auto& [faction, mask] : loadedFactionSlots)
         factionSlotsIgnore[faction] |= mask;
+
+    uiNeedsRefresh = true;
+}
+
+
+void Settings::SaveConfig()
+{
+    constexpr auto path = "Data/SKSE/Plugins/Redresser.ini";
+
+    CSimpleIniA ini;
+    ini.SetUnicode();
+    ini.SetMultiKey(true);
+    ini.LoadFile(path);
+
+    ini.SetBoolValue("General", "Debug",                debug,                nullptr, true);
+    ini.SetLongValue("General", "SelectedActors",       static_cast<long>(selectedActors), nullptr, false, true);
+    ini.SetBoolValue("General", "DressDeadActors",      dressDeadActors,      nullptr, true);
+    ini.SetBoolValue("General", "DressAliveActors",     dressAliveActors,     nullptr, true);
+    char slotsBuf[16];
+    snprintf(slotsBuf, sizeof(slotsBuf), "0x%08X", autoEquipSlots);
+    ini.SetValue("General", "AutoEquipSlots", slotsBuf, nullptr, true);
+    ini.SetBoolValue("General", "SkipPlayerHome",       skipPlayerHome,       nullptr, true);
+    ini.SetBoolValue("General", "SkipActiveFollowers",  skipActiveFollowers,  nullptr, true);
+    ini.SetBoolValue("General", "SkipSleepingActors",   skipSleepingActors,   nullptr, true);
+    ini.SetBoolValue("General", "GiveDefaultItems",              giveDefaultItems,              nullptr, true);
+    ini.SetBoolValue("General", "GiveItemsIfDead",               giveItemsIfDead,               nullptr, true);
+    ini.SetBoolValue("General", "GiveItemsOnlyIfMissingMainArmor", giveItemsOnlyIfMissingMainArmor, nullptr, true);
+    ini.SetValue("General",     "ExcludedFactions",     rawExcludedFactions.c_str(),  nullptr, true);
+    ini.SetValue("General",     "ExcludedKeywords",     rawExcludedKeywords.c_str(),  nullptr, true);
+
+    std::string factionSlotsComment;
+    CSimpleIniA::TNamesDepend existingSlots;
+    if (ini.GetAllValues("General", "FactionSlotsIgnore", existingSlots) &&
+        !existingSlots.empty() && existingSlots.begin()->pComment)
+        factionSlotsComment = existingSlots.begin()->pComment;
+
+    ini.Delete("General", "FactionSlotsIgnore");
+
+    const char* comment = factionSlotsComment.empty() ? nullptr : factionSlotsComment.c_str();
+    if (rawFactionSlotsIgnore.empty()) {
+        ini.SetValue("General", "FactionSlotsIgnore", "", comment);
+    } else {
+        bool first = true;
+        for (const auto& entry : rawFactionSlotsIgnore) {
+            ini.SetValue("General", "FactionSlotsIgnore", entry.c_str(), first ? comment : nullptr);
+            first = false;
+        }
+    }
+
+    if (ini.SaveFile(path) < 0)
+        logger::warn("Failed to save config to {}", path);
+    else
+        logger::info("Saved config to {}", path);
 }
 
 
@@ -173,15 +240,20 @@ void Settings::GenerateDefaultIni(const char* path)
       << "; Gives NPCs default clothes if they don't have anything to cover themselves with.\n"
       << "GiveDefaultItems = true\n"
       << "\n"
+      << "; Give default items to dead NPCs.\n"
+      << "GiveItemsIfDead = false\n"
+      << "\n"
+      << "; Only give default items if the NPC has no main armor (Body slot empty).\n"
+      << "GiveItemsOnlyIfMissingMainArmor = true\n"
+      << "\n"
       << "; Who will be selected for redressing:\n"
       << "; 0 = Everyone\n"
       << "; 1 = Only fully naked NPCs (must have all 4 slots empty: Body, Hands, Feet, Head)\n"
       << "; 2 = Only NPCs with no main armor equipped (at least the Body slot is empty)\n"
       << "SelectedActors = 2\n"
       << "\n"
-      << "; Restricts the mod to equipping only Body, Hands, Feet or Head items.\n"
-      << "; This prevents NPCs from equipping jewelry and other misc items that were previously stashed in their pockets.\n"
-      << "EquipMainSlotsOnly = false\n"
+      << "; Bitmask of armor slots Redresser is allowed to equip.\n"
+      << "AutoEquipSlots = 0x7FCFFFFF\n"
       << "\n"
       << "; Enables dressing up dead NPCs.\n"
       << "DressDeadActors = true\n"

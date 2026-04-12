@@ -135,9 +135,16 @@ void AutoEquipActor(RE::Actor* actor){
 
     debug_output("Redresser: scanning {}", actor->GetName());
 
-    // Gives default items to alive NPC if they don't have anything else to cover up with
-    if(isMissingMainArmor(actor) && g_settings.giveDefaultItems)
-        GiveDefaultOutfitItems(actor);
+    // Gives default items if configured conditions are met
+    if (g_settings.giveDefaultItems) {
+        bool shouldGive = true;
+        if (actor->IsDead() && !g_settings.giveItemsIfDead)
+            shouldGive = false;
+        if (g_settings.giveItemsOnlyIfMissingMainArmor && !isMissingMainArmor(actor))
+            shouldGive = false;
+        if (shouldGive)
+            GiveDefaultOutfitItems(actor);
+    }
     
 
     auto inv = actor->GetInventory();
@@ -159,14 +166,7 @@ void AutoEquipActor(RE::Actor* actor){
 
         auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
 
-        constexpr uint32_t kBody = static_cast<uint32_t>(RE::BGSBipedObjectForm::BipedObjectSlot::kBody);
-        constexpr uint32_t kHead = static_cast<uint32_t>(RE::BGSBipedObjectForm::BipedObjectSlot::kHead);
-        constexpr uint32_t kHands = static_cast<uint32_t>(RE::BGSBipedObjectForm::BipedObjectSlot::kHands);
-        constexpr uint32_t kFeet = static_cast<uint32_t>(RE::BGSBipedObjectForm::BipedObjectSlot::kFeet);
-
-        // Prevents equipping misc items (jewelry etc.)
-        constexpr uint32_t mainSlots = kBody | kHead | kHands | kFeet;
-        if (g_settings.equipMainSlotsOnly && !(armorSlots & mainSlots))
+        if (!(armorSlots & g_settings.autoEquipSlots))
             continue;
 
         armorList.push_back(armor);
@@ -187,8 +187,8 @@ void AutoEquipActor(RE::Actor* actor){
 
         auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
 
-        // Skipping armor if all its slots are in the ignored mask
-        if (ignoredSlotMask && (armorSlots & ignoredSlotMask) == armorSlots) {
+        // Skipping armor if any of its slots are in the ignored mask
+        if (ignoredSlotMask && (armorSlots & ignoredSlotMask)) {
             debug_output("Redresser: -- {}: skipping {} (ignored slot found) --", actor->GetName(), armor->GetName());
             continue;
         }
@@ -201,7 +201,6 @@ void AutoEquipActor(RE::Actor* actor){
             if (armorSlots & slot) {
                 if (actor->GetWornArmor(static_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(slot))) {
                     slotOccupied = true;
-                    // debug_output("{}: trying to equip {}, slot is already occupied", actor->GetName(), item->GetName());
                     break;
                 }
             }
@@ -254,10 +253,7 @@ bool isPlayerHome(){
 
     // checking for player house keyword
     auto curLocation = player->GetCurrentLocation();
-    if (!curLocation)
-        return false;
-    
-    if (curLocation->HasKeyword(g_locTypePlayerHouse))
+    if (curLocation && curLocation->HasKeyword(g_locTypePlayerHouse))
         return true;
 
     // checking for cell ownership
@@ -322,7 +318,6 @@ void GiveDefaultOutfitItems(RE::Actor* actor) {
         ResolveOutfitItem(item, level, resolved);
 
         for (auto* obj : resolved) {
-            debug_output("Redresser: Considering to give {} to {}", obj->GetName(), actor->GetName());
             if (hasItemForSlot(actor, obj))
                 continue;
             

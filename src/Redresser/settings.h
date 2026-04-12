@@ -16,7 +16,7 @@ struct Settings
 
     bool dressAliveActors = true;
 
-    bool equipMainSlotsOnly = false;
+    uint32_t autoEquipSlots = 0x7FCFFFFF;  // all slots except 50, 51, 61
     
     bool skipPlayerHome = true;
 
@@ -26,27 +26,40 @@ struct Settings
 
     bool giveDefaultItems = true;
 
+    bool giveItemsIfDead = false;
+
+    bool giveItemsOnlyIfMissingMainArmor = true;
+
     std::set<std::string> excludedFactions;
 
     std::set<std::string> excludedKeywords;
 
     std::map<std::string, uint32_t> factionSlotsIgnore;
 
+    // Raw user-defined strings (from Redresser.ini only)
+    std::string rawExcludedFactions;
+    std::string rawExcludedKeywords;
+    std::vector<std::string> rawFactionSlotsIgnore;
+
+    // From dynamically loaded _REDRESS ini files
+    std::set<std::string> loadedFactions;
+    std::set<std::string> loadedKeywords;
+    std::map<std::string, uint32_t> loadedFactionSlots;
+
+    // Set to true by LoadConfig() so the UI knows to refresh its buffers
+    bool uiNeedsRefresh = true;
+
     void LoadConfig();
 
     void LoadRedressFiles();
+
+    void SaveConfig();
 
     void GenerateDefaultIni(const char* path);
 
     static void ParseList(const std::string& raw, std::set<std::string>& out);
 
     static void ParseFactionSlotEntry(const std::string& raw, std::map<std::string, uint32_t>& out);
-
-    private:
-        // From dynamically loaded ini files
-        std::set<std::string> loadedFactions;
-        std::set<std::string> loadedKeywords;
-        std::map<std::string, uint32_t> loadedFactionSlots;
 };
 
 inline Settings g_settings;

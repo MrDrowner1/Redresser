@@ -2,7 +2,7 @@ set_xmakever('3.0.1')
 includes('lib/commonlibsse-ng')
 
 set_project('Redresser')
-set_version('0.3.3')
+set_version('0.4')
 set_license('MIT')
 
 set_languages('c++23')
@@ -56,12 +56,14 @@ target('Redresser')
         runtime     = runtime
     })
 
-    add_files('src/**.cpp')
+    add_files('src/**.cpp|src/Redresser/UI.cpp')
+    add_files('src/Redresser/UI.cpp', {no_pch = true, cxxflags = '/Zm300'})
     add_headerfiles('src/**.h')
 
     add_includedirs(
         'src',
-        '$(projectdir)'
+        '$(projectdir)',
+        'include'
     )
 
     set_pcxxheader('src/pch.h')
