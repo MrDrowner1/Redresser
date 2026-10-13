@@ -30,6 +30,9 @@ struct Settings
 
     bool giveItemsOnlyIfMissingMainArmor = true;
 
+    // Lets a main armor (slot 32) unequip accessories occupying the other slots it covers
+    bool allowUnequipSecondaryItems = true;
+
     std::set<std::string> excludedFactions;
 
     std::set<std::string> excludedKeywords;

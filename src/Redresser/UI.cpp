@@ -111,6 +111,11 @@ void __stdcall UI::Settings::Render()
         if (ImGui::Checkbox("Only give items if the main armor is missing",       &g_settings.giveItemsOnlyIfMissingMainArmor))  Save();
         ImGui::Unindent();
     }
+    if (ImGui::Checkbox("Allow to free up slots to equip main armor", &g_settings.allowUnequipSecondaryItems)) Save();
+    if (ImGui::IsItemHovered())
+        ImGui::SetTooltip(
+            "When equipping a main armor (covers slot 32), allow to unequip items that share other slots with it.");
+
     if (ImGui::Checkbox("Dress dead NPCs",        &g_settings.dressDeadActors))    Save();
     if (ImGui::Checkbox("Dress alive NPCs",       &g_settings.dressAliveActors))   Save();
     if (ImGui::Checkbox("Skip player homes",         &g_settings.skipPlayerHome))     Save();
@@ -178,7 +183,7 @@ void __stdcall UI::Filters::Render()
 
     ImGui::Text("Ignored Slots By Faction");
     ImGui::TextDisabled("Ignore specific armor slots for members of a given faction. The specified slots will NOT be used for auto-equip.");
-    ImGui::TextDisabled("One entry per line:  FactionEditorID | slot1, slot2, ...   (slots 30-61)");
+    ImGui::TextDisabled("One entry per line: FactionEditorID | slot1, slot2, ...   (slots 30-61)");
     ImGui::SetNextItemWidth(-1.0f);
     ImGui::InputTextMultiline("##factionslots", factionSlotsBuf, kSlotsBufSize,
                               ImVec2{-1.0f, 120.0f}, 0, nullptr, nullptr);

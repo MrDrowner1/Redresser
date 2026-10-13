@@ -3,6 +3,8 @@
 #include "settings.h"
 #include "RE/A/ActorState.h"
 
+static bool hasVisibleMesh(RE::TESObjectARMO* armor);
+
 void ProcessActors(){
     // Skipping player homes
     if (g_settings.skipPlayerHome && isPlayerHome()){
@@ -84,11 +86,11 @@ void AutoEquipActor(RE::Actor* actor){
     }
 
     // Checking for a dead actor
-    if (!g_settings.dressDeadActors && actor->IsDead())
+    if (!g_settings.dressDeadActors && IsActorDead(actor))
         return;
 
     // Checking for an alive actor
-    if (!g_settings.dressAliveActors && !actor->IsDead())
+    if (!g_settings.dressAliveActors && !IsActorDead(actor))
         return;
 
     // Checking the selected actors option
@@ -138,12 +140,12 @@ void AutoEquipActor(RE::Actor* actor){
     // Gives default items if configured conditions are met
     if (g_settings.giveDefaultItems) {
         bool shouldGive = true;
-        if (actor->IsDead() && !g_settings.giveItemsIfDead)
+        if (IsActorDead(actor) && !g_settings.giveItemsIfDead)
             shouldGive = false;
         if (g_settings.giveItemsOnlyIfMissingMainArmor && !isMissingMainArmor(actor))
             shouldGive = false;
         if (shouldGive)
-            GiveDefaultOutfitItems(actor);
+            GiveDefaultOutfitItems(actor, ignoredSlotMask);
     }
     
 
@@ -164,7 +166,11 @@ void AutoEquipActor(RE::Actor* actor){
         if (armor->IsShield())
             continue;
 
-        auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
+        // Skipping meshless carriers (e.g. MARA's CORE Carrier) so they don't lock out real clothing
+        if (!hasVisibleMesh(armor))
+            continue;
+
+        auto armorSlots = armor->GetSlotMask().underlying();
 
         if (!(armorSlots & g_settings.autoEquipSlots))
             continue;
@@ -185,7 +191,7 @@ void AutoEquipActor(RE::Actor* actor){
     // Equipping armor
     for (auto* armor : armorList) {
 
-        auto armorSlots = static_cast<uint32_t>(armor->GetSlotMask());
+        auto armorSlots = armor->GetSlotMask().underlying();
 
         // Skipping armor if any of its slots are in the ignored mask
         if (ignoredSlotMask && (armorSlots & ignoredSlotMask)) {
@@ -195,14 +201,23 @@ void AutoEquipActor(RE::Actor* actor){
 
         bool slotOccupied = false;
 
+        constexpr uint32_t kBodySlot = 1u << 2;  // slot 32
+        const bool isMainArmor = (armorSlots & kBodySlot) != 0;
+
         for (uint32_t i = 0; i < 32; i++) {
             uint32_t slot = 1u << i;
+            if (!(armorSlots & slot))
+                continue;
 
-            if (armorSlots & slot) {
-                if (actor->GetWornArmor(static_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(slot))) {
-                    slotOccupied = true;
-                    break;
-                }
+            // For a main armor only the Body slot can block; the engine unequips the rest
+            if (isMainArmor && g_settings.allowUnequipSecondaryItems && slot != kBodySlot)
+                continue;
+
+            auto* worn = actor->GetWornArmor(static_cast<RE::BGSBipedObjectForm::BipedObjectSlot>(slot));
+            // A worn meshless carrier renders nothing, so it doesn't occupy the slot
+            if (worn && hasVisibleMesh(worn)) {
+                slotOccupied = true;
+                break;
             }
         }
 
@@ -276,6 +291,22 @@ void InitializeKeywords() {
 }
 
 
+static bool hasVisibleMesh(RE::TESObjectARMO* armor) {
+    if (!armor)
+        return false;
+    for (auto* arma : armor->armorAddons) {
+        if (!arma)
+            continue;
+        for (auto& model : arma->bipedModels) {
+            const char* path = model.model.c_str();
+            if (path && *path)
+                return true;
+        }
+    }
+    return false;
+}
+
+
 void ResolveOutfitItem(RE::TESForm* form, uint16_t actorLevel, std::vector<RE::TESBoundObject*>& out) {
     if (!form) 
         return;
@@ -301,12 +332,12 @@ void ResolveOutfitItem(RE::TESForm* form, uint16_t actorLevel, std::vector<RE::T
 }
 
 
-void GiveDefaultOutfitItems(RE::Actor* actor) {
-    if (!actor) 
+void GiveDefaultOutfitItems(RE::Actor* actor, uint32_t ignoredSlotMask) {
+    if (!actor)
         return;
 
     auto* actorBase = actor->GetActorBase();
-    if (!actorBase || !actorBase->defaultOutfit) 
+    if (!actorBase || !actorBase->defaultOutfit)
         return;
 
     const uint16_t level = actor->GetLevel();
@@ -316,9 +347,22 @@ void GiveDefaultOutfitItems(RE::Actor* actor) {
         ResolveOutfitItem(item, level, resolved);
 
         for (auto* obj : resolved) {
+            // Not giving armor the equip loop would skip anyway, it would just sit in the inventory
+            const uint32_t objSlots = static_cast<uint32_t>(GetOutfitItemSlot(obj));
+            if (objSlots) {
+                if (!(objSlots & g_settings.autoEquipSlots)) {
+                    debug_output("Redresser: skipping {} for {} (no enabled slots)", obj->GetName(), actor->GetName());
+                    continue;
+                }
+                if (ignoredSlotMask && (objSlots & ignoredSlotMask)) {
+                    debug_output("Redresser: skipping {} for {} (ignored slot found)", obj->GetName(), actor->GetName());
+                    continue;
+                }
+            }
+
             if (hasItemForSlot(actor, obj))
                 continue;
-            
+
             // Adding default clothes piece if actor has no suitable item
             actor->AddObjectToContainer(obj, nullptr, 1, nullptr);
             debug_output("Redresser: !!-- Given {} to {} --!!", obj->GetName(), actor->GetName());
@@ -366,8 +410,19 @@ bool hasItemForSlot(RE::Actor* actor, RE::TESForm* outfitItem) {
             if (isOutfitItem(actorBase->sleepOutfit, armor))
                 continue;
 
-            if (static_cast<uint32_t>(armor->GetSlotMask()) &
-                static_cast<uint32_t>(slot)) {
+            // Meshless carriers use slot bits but render nothing, so they don't count as clothes
+            if (!hasVisibleMesh(armor))
+                continue;
+
+            constexpr uint32_t kBodySlot = 1u << 2;  // slot 32
+
+            const uint32_t outfitMask = static_cast<uint32_t>(slot);
+            const uint32_t invMask = armor->GetSlotMask().underlying();
+
+            // Body garments match on the Body slot only; extra flagged slots (35, 45, 61, ...) don't substitute
+            const uint32_t compareMask = (outfitMask & kBodySlot) ? kBodySlot : outfitMask;
+
+            if (invMask & compareMask) {
                 return true;
             }
         }
@@ -381,7 +436,7 @@ RE::BGSBipedObjectForm::BipedObjectSlot GetOutfitItemSlot(RE::TESForm* form) {
     if (!form) return RE::BGSBipedObjectForm::BipedObjectSlot::kNone;
 
     if (auto* armor = form->As<RE::TESObjectARMO>()) {
-        return armor->GetSlotMask();
+        return armor->GetSlotMask().get();
     }
 
     if (auto* levItem = form->As<RE::TESLevItem>()) {

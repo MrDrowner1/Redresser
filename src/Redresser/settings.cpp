@@ -141,6 +141,8 @@ void Settings::LoadConfig()
 
     giveItemsOnlyIfMissingMainArmor = ini.GetBoolValue("General", "GiveItemsOnlyIfMissingMainArmor", true);
 
+    allowUnequipSecondaryItems = ini.GetBoolValue("General", "AllowUnequipSecondaryItems", true);
+
     rawExcludedFactions = ini.GetValue("General", "ExcludedFactions", "");
     ParseList(rawExcludedFactions, excludedFactions);
     // Adding the factions from loaded ini files
@@ -192,6 +194,7 @@ void Settings::SaveConfig()
     ini.SetBoolValue("General", "GiveDefaultItems",              giveDefaultItems,              nullptr, true);
     ini.SetBoolValue("General", "GiveItemsIfDead",               giveItemsIfDead,               nullptr, true);
     ini.SetBoolValue("General", "GiveItemsOnlyIfMissingMainArmor", giveItemsOnlyIfMissingMainArmor, nullptr, true);
+    ini.SetBoolValue("General", "AllowUnequipSecondaryItems",      allowUnequipSecondaryItems,      nullptr, true);
     ini.SetValue("General",     "ExcludedFactions",     rawExcludedFactions.c_str(),  nullptr, true);
     ini.SetValue("General",     "ExcludedKeywords",     rawExcludedKeywords.c_str(),  nullptr, true);
 
@@ -245,6 +248,9 @@ void Settings::GenerateDefaultIni(const char* path)
       << "\n"
       << "; Only give default items if the NPC has no main armor (Body slot empty).\n"
       << "GiveItemsOnlyIfMissingMainArmor = true\n"
+      << "\n"
+      << "; When equipping a main armor (covers slot 32), allow to unequip items that share other slots with it.\n"
+      << "AllowUnequipSecondaryItems = true\n"
       << "\n"
       << "; Who will be selected for redressing:\n"
       << "; 0 = Everyone\n"

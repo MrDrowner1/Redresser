@@ -11,7 +11,7 @@
             },
             version = "3.31.6-msvc6"
         },
-        ["directxmath#31fecfc4"] = {
+        ["directxmath 2024.02#31fecfc4"] = {
             repo = {
                 branch = "master",
                 commit = "1c4a5226d098031c7980196c162975781e1627cd",
@@ -19,10 +19,10 @@
             },
             version = "2024.02"
         },
-        ["directxtk#31fecfc4"] = {
+        ["directxtk 24.2.0#31fecfc4"] = {
             repo = {
                 branch = "master",
-                commit = "1c4a5226d098031c7980196c162975781e1627cd",
+                commit = "5343d94a3e18b86aa2f77a516afd177489f36142",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
             version = "24.2.0"
@@ -43,13 +43,13 @@
             },
             version = "v4.25"
         },
-        ["spdlog#9c36f0a9"] = {
+        ["spdlog v1.16.0#9c36f0a9"] = {
             repo = {
                 branch = "master",
-                commit = "f067dc05ebe0473c9f4857402b0b9993b3c38c4f",
+                commit = "5343d94a3e18b86aa2f77a516afd177489f36142",
                 url = "https://gitlab.com/tboox/xmake-repo.git"
             },
-            version = "v1.15.2"
+            version = "v1.16.0"
         }
     }
 }
